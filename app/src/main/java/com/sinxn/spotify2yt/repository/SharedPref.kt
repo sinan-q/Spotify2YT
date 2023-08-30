@@ -8,8 +8,16 @@ class SharedPref @Inject constructor(
 
     ) {
 
+
     fun isLogged():Boolean {
-        return preferences.getString("isLogged","false") != "false"
+
+        return !(accessToken.isNullOrEmpty()
+                        || refreshToken.isNullOrEmpty()
+                        || expiresAt==0
+                        || spotifyClientId.isNullOrEmpty()
+                        || spotifyClientSecret.isNullOrEmpty()
+                )
+
     }
 
     var accessToken: String?
