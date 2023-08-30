@@ -38,7 +38,10 @@ fun HomeScreen(
         Column {
 
             OutlinedTextField(value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
-            Button(onClick = { viewModel.onConvert(playlist) }) {
+            Button(onClick = {
+                viewModel.onConvert(playlist)
+                navController.navigate(Routes.PLAYLIST_SCREEN)
+            }) {
                 Text(text = "Convert")
             }
         }
