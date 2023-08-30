@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                             },
                             title = {
                                 Text(
-                                    text = "viewModel.state",
+                                    text = "Youtify",
                                     fontSize = (collapsedTextSize + (expandedTextSize - collapsedTextSize) * (1 - scrollBehavior.state.collapsedFraction)).sp
                                 )
                             },
