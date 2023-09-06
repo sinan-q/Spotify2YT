@@ -184,7 +184,7 @@ fun parseSearchResult(
             searchResult.add("album", null)
             if (data.has("menu")) {
                 val toggleMenu = findObjectByKey(nav(data, YTAuth.MENU_ITEMS)?.asJsonArray, YTAuth.TOGGLE_MENU)
-                if (toggleMenu != null) {
+                if (toggleMenu != null && toggleMenu!= JsonObject()) {
                     searchResult.add("feedbackTokens", parseSongMenuTokens(toggleMenu))
                 }
             }
@@ -237,12 +237,12 @@ fun parseSearchResult(
             }
         }
     }
-    if (resultType in listOf("song", "video")) {
+    if (finalResultType in listOf("song", "video")) {
         searchResult.addProperty("videoId", nav(data, YTAuth.PLAY_BUTTON + listOf("playNavigationEndpoint", "watchEndpoint", "videoId"), true)?.asString)
         searchResult.addProperty("videoType", videoType)
     }
 
-    if (resultType in listOf("song", "video", "album")) {
+    if (finalResultType in listOf("song", "video", "album")) {
         searchResult.add("duration", null)
         searchResult.add("year", null)
         val flexItem = getFlexColumnItem(data, 1)
@@ -251,11 +251,11 @@ fun parseSearchResult(
         searchResult.update(songInfo)
     }
 
-    if (resultType in listOf("artist", "album", "playlist", "profile")) {
+    if (finalResultType in listOf("artist", "album", "playlist", "profile")) {
         searchResult.add("browseId", nav(data, YTAuth.NAVIGATION_BROWSE_ID, true))
     }
 
-    if (resultType in listOf("song", "album")) {
+    if (finalResultType in listOf("song", "album")) {
         searchResult.addProperty("isExplicit", nav(data, YTAuth.BADGE_LABEL, true) != null)
     }
 
@@ -268,7 +268,6 @@ fun parseSearchResult(
 
 fun parseSearchResults(results: JsonArray?, searchResultTypes: List<String>, resultType: String?, category: String?): JsonArray {
     val parsedResults = JsonArray()
-
     if (results != null) {
         for (result in results) {
             if (!result.asJsonObject.has(YTAuth.MRLIR)) continue

@@ -89,7 +89,6 @@ class HomeViewModel @Inject constructor(
         if (isLogged) {
             viewModelScope.launch {
                 ytmApi = YTMusic(File(storage, "auth").path)
-                v("tag",SearchMixin(ytmApi).search("Liquid Smooth").toString())
 
                 val spotifyCred = SpotifyCredentials().apply {
                     clientId = sharedPref.spotifyClientId

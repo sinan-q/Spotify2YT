@@ -106,50 +106,44 @@ open class SearchMixin(private val yTMusic: YTMusic) {
 
         if (resultsArray != null) {
             for (res in resultsArray) {
-                var contents: JsonElement? = null
+                var contents: JsonElement?
                 var category: JsonElement? = null
                 var type: String? = null
-                when {
-                    res.asJsonObject.has("musicCardShelfRenderer") -> {
-                        val topResult = parseTopResult(
-                            res.asJsonObject["musicCardShelfRenderer"].asJsonObject,
-                            parser.getSearchResultTypes()
-                        )
-                        searchResults.add(topResult)
+                if (res.asJsonObject.has("musicCardShelfRenderer")) {
+                    val topResult = parseTopResult(
+                        res.asJsonObject["musicCardShelfRenderer"].asJsonObject,
+                        parser.getSearchResultTypes()
+                    )
+                    searchResults.add(topResult)
 
-                        contents = nav(
-                            res.asJsonObject,
-                            listOf("musicCardShelfRenderer", "contents"),
-                            true
-                        )
-                        if (contents != null) {
-                            val category1 = contents.asJsonArray?.firstOrNull()?.asJsonObject
-                            if (category1?.has("messageRenderer") == true)
-                                category =
-                                    nav(category1, listOf("messageRenderer") + YTAuth.TEXT_RUN_TEXT)
-                        }
+                    contents = nav(
+                        res.asJsonObject,
+                        listOf("musicCardShelfRenderer", "contents"),
+                        true
+                    )
+                    if (contents != null) {
+                        val category1 = contents.asJsonArray?.firstOrNull()?.asJsonObject
+                        if (category1?.has("messageRenderer") == true)
+                            category =
+                                nav(category1, listOf("messageRenderer") + YTAuth.TEXT_RUN_TEXT)
                     }
-
-                    res.asJsonObject.has("musicShelfRenderer") -> {
-                        contents = res.asJsonObject["musicShelfRenderer"].asJsonObject["contents"].asJsonArray
-                        var typeFilter = filter
-                        category = nav(
-                            res.asJsonObject,
-                            YTAuth.MUSIC_SHELF + YTAuth.TITLE_TEXT,
-                            true
-                        )
-
-                        if (typeFilter == null && scope == scopes[0]) {
-                            typeFilter = category?.asString
-                        }
-
-                        type = typeFilter?.substring(0, typeFilter.length - 1)?.lowercase(Locale.ROOT)
+                } else if (res.asJsonObject.has("musicShelfRenderer")) {
+                    contents =
+                        res.asJsonObject["musicShelfRenderer"].asJsonObject["contents"].asJsonArray
+                    var typeFilter = filter
+                    category = nav(
+                        res.asJsonObject,
+                        YTAuth.MUSIC_SHELF + YTAuth.TITLE_TEXT,
+                        true
+                    )
+                    if (typeFilter == null && scope == scopes[0]) {
+                        typeFilter = category?.asString
                     }
+                    type = typeFilter?.substring(0, typeFilter.length - 1)?.lowercase(Locale.ROOT)
 
-                    else -> continue
-                }
+                } else continue
+
                 val searchResultTypes = parser.getSearchResultTypes()
-
                 searchResults.addAll(
                     parseSearchResults(
                         contents?.asJsonArray,
