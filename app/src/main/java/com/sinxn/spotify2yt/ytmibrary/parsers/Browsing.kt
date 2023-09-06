@@ -49,21 +49,21 @@ fun parseSongFlat(data: JsonObject): JsonObject {
         .map { getFlexColumnItem(data, it) }
 
     val song = JsonObject().apply {
-        addProperty("title", nav(columns[0], YTAuth.TEXT_RUN_TEXT)?.asString)
-        addProperty("videoId", nav(columns[0], YTAuth.TEXT_RUN + YTAuth.NAVIGATION_VIDEO_ID, true)?.asString)
+        addProperty("title", nav(columns[0]!!, YTAuth.TEXT_RUN_TEXT)?.asString)
+        addProperty("videoId", nav(columns[0]!!, YTAuth.TEXT_RUN + YTAuth.NAVIGATION_VIDEO_ID, true)?.asString)
         add("artists", parseSongArtists(data, 1)) // Replace with actual implementation
         add("thumbnails", nav(data, YTAuth.THUMBNAILS))
         addProperty("isExplicit", (nav(data, YTAuth.BADGE_LABEL, true) != JsonObject()))
     }
 
-    if (columns.size > 2 && columns[2] != JsonObject() && nav(columns[2], YTAuth.TEXT_RUN)?.asJsonObject?.has("navigationEndpoint") == true) {
+    if (columns.size > 2 && columns[2] != JsonObject() && nav(columns[2]!!, YTAuth.TEXT_RUN)?.asJsonObject?.has("navigationEndpoint") == true) {
         val albumObject = JsonObject().apply {
-            addProperty("name", nav(columns[2], YTAuth.TEXT_RUN)?.asString)
-            addProperty("id", nav(columns[2], YTAuth.TEXT_RUN+ YTAuth.NAVIGATION_BROWSE_ID)?.asString)
+            addProperty("name", nav(columns[2]!!, YTAuth.TEXT_RUN)?.asString)
+            addProperty("id", nav(columns[2]!!, YTAuth.TEXT_RUN+ YTAuth.NAVIGATION_BROWSE_ID)?.asString)
         }
         song.add("album", albumObject)
     } else {
-        song.addProperty("views", nav(columns[1], listOf("text", "runs", -1, "text"))?.asString?.split(' ')
+        song.addProperty("views", nav(columns[1]!!, listOf("text", "runs", -1, "text"))?.asString?.split(' ')
             ?.get(0)
             ?:"")
     }

@@ -3,7 +3,10 @@ package com.sinxn.spotify2yt.ytmibrary.parsers
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
+import com.sinxn.spotify2yt.ytmibrary.findObjectByKey
 import com.sinxn.spotify2yt.ytmibrary.nav
+import com.sinxn.spotify2yt.ytmibrary.subList
+import com.sinxn.spotify2yt.ytmibrary.update
 import java.util.Locale
 
 
@@ -36,7 +39,9 @@ fun parseTopResult(data: JsonObject, searchResultTypes: List<String>): JsonObjec
         }
 
         val artistInfo = nav(data, listOf("title", "runs"))?.asJsonArray?.let { parseSongRuns(it) }
-        // Update the searchResult with artistInfo
+        if (artistInfo != null) {
+            searchResult.update(artistInfo)
+        }
 
     }
 
@@ -52,11 +57,10 @@ fun parseTopResult(data: JsonObject, searchResultTypes: List<String>): JsonObjec
         searchResult.addProperty("title", nav(data, YTAuth.TITLE_TEXT)?.asString ?: "")
         val runs =
             nav(data, listOf("subtitle", "runs"))?.asJsonArray?.size()?.let {
-                nav(data, listOf("subtitle", "runs"))?.asJsonArray?.toList()
-                    ?.subList(2, it)
+                nav(data, listOf("subtitle", "runs"))?.asJsonArray?.subList(2, it)
             }
         val songInfo = runs?.let { parseSongRuns(it) }
-        // Update the searchResult with songInfo
+        songInfo?.let { searchResult.update(it) }
     }
 
     searchResult.add("thumbnails", nav(data, YTAuth.THUMBNAILS, true))
@@ -162,24 +166,108 @@ fun parseSearchResult(
             searchResult.addProperty("type", getItemText(data, 1))
         }
         "playlist" -> {
-            val flexItem = getFlexColumnItem(data, 1)["text"].asJsonObject["runs"].asJsonArray
-            val hasAuthor = flexItem.size() == defaultOffset + 3
+            val flexItem = getFlexColumnItem(data, 1)?.get("text")?.asJsonObject?.get("runs")?.asJsonArray
+            val hasAuthor = flexItem?.size() == defaultOffset + 3
             searchResult.addProperty("itemCount",
                 getItemText(data, 1, defaultOffset + (if (hasAuthor) 2 else 0))?.split(' ')?.get(0) ?: ""
             )
             searchResult.addProperty("author", if (!hasAuthor) "" else getItemText(data, 1, defaultOffset))
         }
-        // Handle other cases...
+        "station" -> {
+            searchResult.addProperty("videoId", nav(data, YTAuth.NAVIGATION_VIDEO_ID)?.asString )
+            searchResult.addProperty("playlistId", nav(data, YTAuth.NAVIGATION_PLAYLIST_ID)?.asString)
+        }
+        "profile" -> {
+            searchResult.addProperty("name", getItemText(data, 1, 2, true))
+        }
+        "song" -> {
+            searchResult.add("album", null)
+            if (data.has("menu")) {
+                val toggleMenu = findObjectByKey(nav(data, YTAuth.MENU_ITEMS)?.asJsonArray, YTAuth.TOGGLE_MENU)
+                if (toggleMenu != null) {
+                    searchResult.add("feedbackTokens", parseSongMenuTokens(toggleMenu))
+                }
+            }
+        }
+        "upload" -> {
+            val browseId = nav(data, YTAuth.NAVIGATION_BROWSE_ID, true)?.asString
+            if (browseId == null) {
+                val flexItems = (0 until 2).mapNotNull { i ->
+                    val flexItem = getFlexColumnItem(data, i)
+                    nav(flexItem!!, listOf("text", "runs"), true)?.asJsonArray
+                }
+
+                if (flexItems.isNotEmpty()) {
+                    val flexItem0 = flexItems[0].get(0).asJsonObject
+                    searchResult.addProperty("videoId", nav(flexItem0, YTAuth.NAVIGATION_VIDEO_ID, true)?.asString)
+                    searchResult.addProperty("playlistId", nav(flexItem0, YTAuth.NAVIGATION_PLAYLIST_ID, true)?.asString)
+                }
+
+                if (flexItems.size > 1) {
+                    val runs = parseSongRuns(flexItems[1])
+                    runs.entrySet().forEach { (key, value) -> searchResult.add(key, value) }
+                }
+
+                searchResult.addProperty("resultType", "song")
+            } else {
+                searchResult.addProperty("browseId", browseId)
+                if (browseId.contains("artist")) {
+                    searchResult.addProperty("resultType", "artist")
+                } else {
+                    val flexItem1 = getFlexColumnItem(data, 1)
+                    val runs =
+                        (flexItem1?.get("text")?.asJsonObject?.get("runs")?.asJsonArray)?.mapNotNull { run ->
+                            run.asJsonObject["text"]?.asString
+                        }
+
+                    if (runs != null) {
+                        if (runs.size > 1) {
+                            searchResult.addProperty("artist", runs[1])
+                        }
+                    }
+
+                    if (runs != null) {
+                        if (runs.size > 2) {
+                            searchResult.addProperty("releaseDate", runs[2])
+                        }
+                    }
+
+                    searchResult.addProperty("resultType", "album")
+                }
+            }
+        }
+    }
+    if (resultType in listOf("song", "video")) {
+        searchResult.addProperty("videoId", nav(data, YTAuth.PLAY_BUTTON + listOf("playNavigationEndpoint", "watchEndpoint", "videoId"), true)?.asString)
+        searchResult.addProperty("videoType", videoType)
     }
 
+    if (resultType in listOf("song", "video", "album")) {
+        searchResult.add("duration", null)
+        searchResult.add("year", null)
+        val flexItem = getFlexColumnItem(data, 1)
+        val runs = flexItem?.getAsJsonObject("text")?.getAsJsonArray("runs")?.subList(defaultOffset)
+        val songInfo = parseSongRuns(runs)
+        searchResult.update(songInfo)
+    }
+
+    if (resultType in listOf("artist", "album", "playlist", "profile")) {
+        searchResult.add("browseId", nav(data, YTAuth.NAVIGATION_BROWSE_ID, true))
+    }
+
+    if (resultType in listOf("song", "album")) {
+        searchResult.addProperty("isExplicit", nav(data, YTAuth.BADGE_LABEL, true) != null)
+    }
+
+    searchResult.add("thumbnails", nav(data, YTAuth.THUMBNAILS, true))
     return searchResult
 }
 
 
 // Define other necessary functions and constants...
 
-fun parseSearchResults(results: JsonArray?, searchResultTypes: List<String>, resultType: String?, category: String?): List<JsonObject>{
-    val parsedResults = mutableListOf<JsonObject>()
+fun parseSearchResults(results: JsonArray?, searchResultTypes: List<String>, resultType: String?, category: String?): JsonArray {
+    val parsedResults = JsonArray()
 
     if (results != null) {
         for (result in results) {

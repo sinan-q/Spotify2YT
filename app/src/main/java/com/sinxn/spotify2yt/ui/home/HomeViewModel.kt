@@ -7,10 +7,12 @@ import com.adamratzman.spotify.SpotifyAppApi
 import com.adamratzman.spotify.SpotifyAppApiBuilder
 import com.adamratzman.spotify.SpotifyCredentials
 import com.adamratzman.spotify.models.Track
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.repository.SharedPref
 import com.sinxn.spotify2yt.tools.similarityTo
 import com.sinxn.spotify2yt.tools.ytId
+import com.sinxn.spotify2yt.ui.home.DebugUtilis.v
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
 import com.sinxn.spotify2yt.ytmibrary.mixins.SearchMixin
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +58,7 @@ class HomeViewModel @Inject constructor(
                 var query = track.artists.joinToString{it.name + " " } + songName
                 query = query.replace("&", "")
                 val res = SearchMixin(ytmApi).search(query)
-                if (res.isNotEmpty()) {
+                if (res.size()>0) {
                     Log.d("TAG", "getYTSongs: $res")
 
                     val targetSongId = getTopResult(res)
@@ -70,8 +72,8 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private fun getTopResult(res: List<JsonObject>): String? {
-        res.forEach {
+    private fun getTopResult(res: JsonArray): String? {
+        res.forEach {it as JsonObject
             if (it["category"].asString.equals("Top result"))
                 return if (it.has("videoId"))
                     it["videoId"].asString
@@ -87,6 +89,7 @@ class HomeViewModel @Inject constructor(
         if (isLogged) {
             viewModelScope.launch {
                 ytmApi = YTMusic(File(storage, "auth").path)
+                v("tag",SearchMixin(ytmApi).search("Liquid Smooth").toString())
 
                 val spotifyCred = SpotifyCredentials().apply {
                     clientId = sharedPref.spotifyClientId
@@ -97,6 +100,7 @@ class HomeViewModel @Inject constructor(
 
         }
     }
+
 
     private fun getBestFitSongId(ytmResults: List<JsonObject>, spoti: Track?): String? {
         require(spoti!=null) {"spotify Track is null"}
@@ -164,4 +168,25 @@ class HomeViewModel @Inject constructor(
         return matchScore.maxByOrNull { it.value }?.key
     }
 
+}
+
+object DebugUtilis {
+    var _charLimit = 2000
+    @JvmStatic
+    fun v(tag: String?, message: String): Int {
+        // If the message is less than the limit just show
+        if (message.length < _charLimit) {
+            return Log.v(tag, message)
+        }
+        val sections = message.length / _charLimit
+        for (i in 0..sections) {
+            val max = _charLimit * (i + 1)
+            if (max >= message.length) {
+                Log.v(tag, message.substring(_charLimit * i))
+            } else {
+                Log.v(tag, message.substring(_charLimit * i, max))
+            }
+        }
+        return 1
+    }
 }

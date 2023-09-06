@@ -50,7 +50,7 @@ val SUPPORTED_LOCATIONS = listOf(
     val MENU_LIKE_STATUS =
         MENU + arrayListOf<Any>("topLevelButtons", 0, "likeButtonRenderer", "likeStatus")
     val MENU_SERVICE = arrayListOf<Any>("menuServiceItemRenderer", "serviceEndpoint")
-    val TOGGLE_MENU = arrayListOf<Any>("toggleMenuServiceItemRenderer")
+    val TOGGLE_MENU = "toggleMenuServiceItemRenderer"
     val PLAY_BUTTON = arrayListOf<Any>(
         "overlay",
         "musicItemThumbnailOverlayRenderer",

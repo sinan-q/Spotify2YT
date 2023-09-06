@@ -28,21 +28,23 @@ fun nav(root: JsonObject, items: List<Any>, none_if_absent: Boolean=false): Json
 
 }
 
-fun findObjectByKey(objectList: JsonObject, key: String, nested: String? = null, isKey: Boolean = false): JsonObject {
-    for (item in objectList.asJsonArray) {
-        var currentItem = item.asJsonObject
-        if (nested != null) {
-            currentItem = item.asJsonObject.getAsJsonObject(nested)
-        }
-        if (currentItem.has(key)) {
-            return if (isKey) {
-                currentItem.getAsJsonObject(key)
-            } else {
-                currentItem
+fun findObjectByKey(objectList: JsonArray?, key: String, nested: String? = null, isKey: Boolean = false): JsonObject? {
+    if (objectList != null) {
+        for (item in objectList) {
+            var currentItem = item.asJsonObject
+            if (nested != null) {
+                currentItem = item.asJsonObject.getAsJsonObject(nested)
+            }
+            if (currentItem.has(key)) {
+                return if (isKey) {
+                    currentItem.getAsJsonObject(key)
+                } else {
+                    currentItem
+                }
             }
         }
     }
-    return JsonObject()
+    return null
 }
 
 fun findObjectsByKey(objectList: JsonArray, key: String, nested: String? = null): JsonArray {

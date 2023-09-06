@@ -36,11 +36,7 @@ fun parseMenuPlaylists(data: JsonObject, result: JsonObject): JsonObject {
 
 
 fun getItemText(item: JsonObject, index: Int, runIndex: Int = 0, noneIfAbsent: Boolean = false): String? {
-    val column = getFlexColumnItem(item, index)
-
-    if (column == JsonObject()) {
-        return null
-    }
+    val column = getFlexColumnItem(item, index) ?: return null
 
     if (noneIfAbsent && column["text"].asJsonObject["runs"].asJsonArray.size() < runIndex + 1) {
         return null
@@ -49,16 +45,16 @@ fun getItemText(item: JsonObject, index: Int, runIndex: Int = 0, noneIfAbsent: B
     return column["text"].asJsonObject["runs"].asJsonArray[runIndex].asJsonObject["text"].asString
 }
 
-fun getFlexColumnItem(item: JsonObject, index: Int): JsonObject {
+fun getFlexColumnItem(item: JsonObject, index: Int): JsonObject? {
     val flexColumns = item["flexColumns"].asJsonArray
     if (flexColumns.size() <= index ||
         !flexColumns[index].asJsonObject.has("musicResponsiveListItemFlexColumnRenderer") ||
         !flexColumns[index].asJsonObject["musicResponsiveListItemFlexColumnRenderer"]
             .asJsonObject["text"].asJsonObject.has("runs")) {
-        return JsonObject()
+        return null
     }
 
-    return flexColumns[index].asJsonObject["musicResponsiveListItemFlexColumnRenderer"].asJsonObject
+    return flexColumns[index].asJsonObject["musicResponsiveListItemFlexColumnRenderer"]?.asJsonObject
 }
 
 fun getFixedColumnItem(item: JsonObject, index: Int): JsonObject? {

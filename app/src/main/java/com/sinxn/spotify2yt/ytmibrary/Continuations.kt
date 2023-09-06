@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt.ytmibrary
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 
 suspend fun getContinuations(
@@ -7,14 +8,14 @@ suspend fun getContinuations(
     continuation_type: String,
     limit: Int?,
     requestFunc: suspend (String) -> JsonObject,
-    parse_func: (JsonObject) -> List<JsonObject>,
+    parse_func: (JsonObject) -> JsonArray?,
     ctoken_path: String="",
     reloadable: Boolean =false
-): List<JsonObject>
+): JsonArray
 {
     var results = results
-    val items = arrayListOf<JsonObject>()
-    while( results.getAsJsonObject("continuations")!=null && (limit == null || items.size < limit))
+    val items = JsonArray()
+    while( results.getAsJsonObject("continuations")!=null && (limit == null || items.size() < limit))
     {
         val additionalParams = if (reloadable) getReloadableContinuationParams(results)
         else getContinuationParams(results, ctoken_path)
@@ -23,7 +24,7 @@ suspend fun getContinuations(
             results = response.getAsJsonObject("continuationContents").getAsJsonObject(continuation_type)
         else break
         val contents = getContinuationContents(results, parse_func)
-        if (contents.isEmpty())
+        if (contents?.size()==0)
             break
         items.addAll(contents)
     }
@@ -35,7 +36,7 @@ fun getContinuationString(ctoken: String?): String {
     return if (!ctoken.isNullOrEmpty())"&ctoken=$ctoken&continuation=$ctoken" else ""
 }
 
-fun getContinuationContents(continuation: JsonObject, parseFunc: (JsonObject) -> List<JsonObject>): List<JsonObject> {
+fun getContinuationContents(continuation: JsonObject, parseFunc: (JsonObject) -> JsonArray?): JsonArray? {
     val terms = listOf("contents", "items")
 
     for (term in terms) {
@@ -44,7 +45,7 @@ fun getContinuationContents(continuation: JsonObject, parseFunc: (JsonObject) ->
         }
     }
 
-    return emptyList()
+    return JsonArray()
 }
 
 
