@@ -8,14 +8,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sinxn.spotify2yt.api.ResposeGetCode
 import com.sinxn.spotify2yt.api.SendCodeRequest
+import com.sinxn.spotify2yt.api.TokenRequest
 import com.sinxn.spotify2yt.api.YTMGetCode
 import com.sinxn.spotify2yt.api.YTMGetToken
-import com.sinxn.spotify2yt.api.TokenRequest
-import com.sinxn.spotify2yt.api.TokenResponse
 import com.sinxn.spotify2yt.repository.SharedPref
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +23,7 @@ class SetupViewModel @Inject constructor(
     private val ytmGetCode: YTMGetCode,
     private val ytmGetToken: YTMGetToken,
     private val sharedPref: SharedPref,
+    private val storage: File
 ): ViewModel()
 {
     var ytmUrl by mutableStateOf("")
@@ -49,10 +50,10 @@ class SetupViewModel @Inject constructor(
             try {
                 val res = ytmGetToken.getCode(tokenRequest = TokenRequest(code=code.device_code?: ""))
                 if (res.isSuccessful) {
-                    val data = res.body()?: TokenResponse()
-                    sharedPref.accessToken = data.access_token
-                    sharedPref.refreshToken = data.refresh_token
-                    sharedPref.expiresAt = (System.currentTimeMillis()/1000).toInt() + data.expires_in
+                    val data = res.body().toString()
+                    val file = File(storage,"auth")
+                    file.writeText(data)
+
 
                 }
             }catch (e: HttpException) {}

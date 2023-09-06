@@ -15,6 +15,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 @Module
@@ -40,7 +41,7 @@ object AppModule {
 
 
     @Provides
-    fun provideYTMApi(): YTMGetCode {
+    fun provideYTMGetCode(): YTMGetCode {
         return Retrofit.Builder()
             .baseUrl("https://www.youtube.com") // change this IP for testing by your actual machine IP
             .addConverterFactory(GsonConverterFactory.create(gson))
@@ -57,5 +58,10 @@ object AppModule {
             .client(client)
             .build()
             .create(YTMGetToken::class.java)
+    }
+
+    @Provides
+    fun provideStorage(@ApplicationContext context: Context): File {
+        return context.filesDir
     }
 }
