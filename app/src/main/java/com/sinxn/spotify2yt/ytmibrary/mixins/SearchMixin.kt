@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt.ytmibrary.mixins
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
@@ -24,7 +25,7 @@ open class SearchMixin(private val yTMusic: YTMusic) {
         ignoreSpelling: Boolean = false
     ): List<JsonObject> {
         var filter = filterParam
-        body  = JsonObject()
+        body = JsonObject()
         body.addProperty("query", query)
         endpoint = "search"
         var results: JsonObject
@@ -65,20 +66,21 @@ open class SearchMixin(private val yTMusic: YTMusic) {
 
         val params = getSearchParams(filter, scope, ignoreSpelling)
         if (params != null) {
-            body.addProperty("params",params)
+            body.addProperty("params", params)
         }
 
         val response = yTMusic.sendRequest(endpoint, body)
 
         // Check for no results
-        if ( !response.has("contents")) {
+        if (!response.has("contents")) {
             return searchResults
         }
 
         val tabbedSearchResults = response.getAsJsonObject("contents")
-        val tabbedSearchResultsRenderer = tabbedSearchResults.getAsJsonObject("tabbedSearchResultsRenderer")
+        val tabbedSearchResultsRenderer =
+            tabbedSearchResults.getAsJsonObject("tabbedSearchResultsRenderer")
         //TODO .has(contetts)
-        if (tabbedSearchResultsRenderer!=null) {
+        if (tabbedSearchResultsRenderer != null) {
             val tabIndex = if (scope == null || filter == null) 0 else scopes.indexOf(scope) + 1
             val tabs = tabbedSearchResultsRenderer["tabs"].asJsonArray
             val tabRenderer = tabs[tabIndex].asJsonObject["tabRenderer"].asJsonObject
@@ -105,6 +107,9 @@ open class SearchMixin(private val yTMusic: YTMusic) {
 
         if (resultsArray != null) {
             for (res in resultsArray) {
+                var contents: JsonElement? = null
+                var category: JsonElement? = null
+                var type: String? = null
                 when {
                     res.asJsonObject.has("musicCardShelfRenderer") -> {
                         val topResult = parseTopResult(
@@ -113,57 +118,75 @@ open class SearchMixin(private val yTMusic: YTMusic) {
                         )
                         searchResults.add(topResult)
 
-                        val contents = nav(res.asJsonObject, listOf("musicCardShelfRenderer", "contents"), true)
-                        if (contents != JsonObject()) {
-                            val category = contents?.asJsonArray?.firstOrNull()?.asJsonObject
-                                ?.let { nav(it, listOf("messageRenderer") + YTAuth.TEXT_RUN_TEXT) }
-                            var type: String? = null
-                            // Continue handling based on your code logic
+
+                        contents = nav(
+                            res.asJsonObject,
+                            listOf("musicCardShelfRenderer", "contents"),
+                            true
+                        )
+                        if (contents != null) {
+                            val category1 = contents.asJsonArray?.firstOrNull()?.asJsonObject
+                            if (category1?.has("messageRenderer") == true)
+                                category =
+                                    nav(category1, listOf("messageRenderer") + YTAuth.TEXT_RUN_TEXT)
                         }
                     }
+
                     res.asJsonObject.has("musicShelfRenderer") -> {
-                        val shelfRenderer = res.asJsonObject["musicShelfRenderer"].asJsonObject
-                        val contents = shelfRenderer["contents"].asJsonArray
+                        contents = res.asJsonObject["musicShelfRenderer"].asJsonObject["contents"].asJsonArray
                         var typeFilter = filter
-                        val category = nav(shelfRenderer, YTAuth.MUSIC_SHELF + YTAuth.TITLE_TEXT, true)?.asString
-
-                        if (typeFilter == null && scope == scopes[0]) {
-                            typeFilter = category
-                        }
-
-                        val type = typeFilter?.substring(0, typeFilter.length - 1)
-                            ?.lowercase(Locale.ROOT)
-
-                        val searchResultTypes = parser.getSearchResultTypes()
-                        searchResults.addAll(
-                            parseSearchResults(contents, searchResultTypes, type, category)
+                        category = nav(
+                            res.asJsonObject,
+                            YTAuth.MUSIC_SHELF + YTAuth.TITLE_TEXT,
+                            true
                         )
 
-                        if (filter != null) {
-                            // Define your request and parse functions
-                            val requestFunc:suspend (String) -> JsonObject = {
-
-                                yTMusic.sendRequest(endpoint, body, it)
-                            }
-                            val parseFunc: (JsonObject) -> List<JsonObject> = {
-                                parseSearchResults(it.asJsonArray, searchResultTypes, type, category)
-                            }
-
-                            searchResults.addAll(
-                                getContinuations(
-                                    shelfRenderer,
-                                    "musicShelfContinuation",
-                                    limit - searchResults.size,
-                                    requestFunc,
-                                    parseFunc
-                                )
-                            )
+                        if (typeFilter == null && scope == scopes[0]) {
+                            typeFilter = category?.asString
                         }
+
+                        type = typeFilter?.substring(0, typeFilter.length - 1)
+                            ?.lowercase(Locale.ROOT)
                     }
+                }
+                val searchResultTypes = parser.getSearchResultTypes()
+
+                searchResults.addAll(
+                    parseSearchResults(
+                        contents?.asJsonArray,
+                        searchResultTypes,
+                        type,
+                        category?.asString
+                    )
+                )
+
+                if (filter != null) {
+                    // Define your request and parse functions
+                    val requestFunc: suspend (String) -> JsonObject = {
+
+                        yTMusic.sendRequest(endpoint, body, it)
+                    }
+                    val parseFunc: (JsonObject) -> List<JsonObject> = {
+                        parseSearchResults(
+                            it.asJsonArray,
+                            searchResultTypes,
+                            type,
+                            category?.asString
+                        )
+                    }
+
+                    searchResults.addAll(
+                        getContinuations(
+                            res.asJsonObject["musicShelfRenderer"].asJsonObject,
+                            "musicShelfContinuation",
+                            limit - searchResults.size,
+                            requestFunc,
+                            parseFunc
+                        )
+                    )
                 }
             }
         }
-
         return searchResults
     }
 

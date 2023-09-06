@@ -178,12 +178,15 @@ fun parseSearchResult(
 
 // Define other necessary functions and constants...
 
-fun parseSearchResults(results: JsonArray, searchResultTypes: List<String>, resultType: String?, category: String?): List<JsonObject>{
+fun parseSearchResults(results: JsonArray?, searchResultTypes: List<String>, resultType: String?, category: String?): List<JsonObject>{
     val parsedResults = mutableListOf<JsonObject>()
 
-    for (result in results) {
-        val parsedResult = parseSearchResult(result.asJsonObject[YTAuth.MRLIR.toString()].asJsonObject, searchResultTypes, resultType, category)
-        parsedResults.add(parsedResult)
+    if (results != null) {
+        for (result in results) {
+            if (!result.asJsonObject.has(YTAuth.MRLIR)) continue
+            val parsedResult = parseSearchResult(result.asJsonObject[YTAuth.MRLIR].asJsonObject, searchResultTypes, resultType, category)
+            parsedResults.add(parsedResult)
+        }
     }
 
     return parsedResults

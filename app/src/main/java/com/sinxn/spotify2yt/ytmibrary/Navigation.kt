@@ -11,12 +11,11 @@ fun nav(root: JsonObject, items: List<Any>, none_if_absent: Boolean=false): Json
     var root: JsonElement = root
     return try {
         for (k in items) {
-            Log.d("TAG", "nav:$k $root")
             root = if (root.isJsonObject && root.asJsonObject.has(k.toString()))
                 root.asJsonObject[k.toString()]
             else if (root.isJsonArray && root.asJsonArray.size() > k.toString().toInt())
                 root.asJsonArray.get(k.toString().toInt())
-            else throw Exception("Error wrong json type")
+            else throw Exception("$items $k $root")
         }
         root
     }
@@ -24,7 +23,7 @@ fun nav(root: JsonObject, items: List<Any>, none_if_absent: Boolean=false): Json
         if (none_if_absent)
             null
         else
-            throw Exception("Error wrong json type")
+            throw Exception("Error wrong json type $err")
     }
 
 }

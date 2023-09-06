@@ -48,7 +48,7 @@ fun parseSongRuns(runs: JsonArray): JsonObject {
             if (item["id"].asString.startsWith("MPRE") || "release_detail" in item["id"].asString) {
                 parsed.add("album", item)
             } else {
-                parsed.getAsJsonArray("artists").add(item)
+                parsed.add("artists", item)
             }
         } else {
             if (text.matches(Regex("^\\d([^ ])* [^ ]*$")) && i > 0) {
@@ -86,7 +86,7 @@ fun parseSongRuns(runs: List<JsonElement>): JsonObject {
             if (item["id"].asString.startsWith("MPRE") || "release_detail" in item["id"].asString) {
                 parsed.add("album", item)
             } else {
-                parsed.getAsJsonArray("artists").add(item)
+                parsed.add("artists",item)
             }
         } else {
             if (text.matches(Regex("^\\d([^ ])* [^ ]*$")) && i > 0) {
