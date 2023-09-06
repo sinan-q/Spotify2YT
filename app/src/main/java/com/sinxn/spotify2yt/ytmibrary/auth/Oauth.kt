@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt.ytmibrary.auth
 
+import android.util.Log
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
@@ -41,26 +42,18 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         return session.newCall(request).execute()
     }
 
-    private fun parseToken(response: Response): JsonObject {
-        val token = JsonObject().apply {
-            val tokenObj = JsonParser().parse(response.body.string()).asJsonObject
-            if (tokenObj != null) {
-                addProperty("access_token", tokenObj.get("access_token").asString)
-                addProperty("token_type", tokenObj.get("token_type").asString)
-                addProperty("refresh_token", tokenObj.get("refresh_token").asString)
-                addProperty("expires_in", tokenObj.get("expires_in").asString)
-            }
-            addProperty("expires_at", (System.currentTimeMillis() / 1000) + getExpiresIn(tokenObj))
-        }
-        return token
+    private fun parseToken(response: Response, refreshToken: String? = null): JsonObject {
+        val tokenObj = JsonParser().parse(response.body.string()).asJsonObject
+        if (!tokenObj.has("refreshToken") && refreshToken!=null) tokenObj.addProperty("refreshToken",refreshToken)
+        tokenObj.addProperty("expires_at", (System.currentTimeMillis() / 1000) + getExpiresIn(tokenObj))
+        return tokenObj
     }
 
     private fun getExpiresIn(tokenObj: JsonObject?): Long {
         return if (tokenObj != null && tokenObj.has("expires_in")) {
             tokenObj.get("expires_in").asLong
-        } else {
-            0
-        }
+        } else 0
+
     }
 
     private fun loadToken(filepath: String): JsonObject? {
@@ -79,13 +72,13 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
     private fun saveToken(token: JsonObject, filepath: String) {
         try {
             val jsonStr = token.toString()
-            Files.write(Paths.get(filepath), jsonStr.toByteArray())
+            File(filepath).writeText(jsonStr)
         } catch (e: IOException) {
             e.printStackTrace()
         }
     }
 
-    fun getCode(): JsonObject {
+    private fun getCode(): JsonObject {
         val codeResponse =
             sendRequest(YTAuth.OAUTH_CODE_URL, JsonObject().apply { addProperty("scope", YTAuth.OAUTH_SCOPE) })
         return JsonParser().parse(codeResponse.body.string())?.asJsonObject ?: JsonObject()
@@ -112,7 +105,7 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
                 addProperty("refresh_token", refreshToken)
             }
         )
-        return parseToken(response)
+        return parseToken(response,refreshToken)
     }
 
     fun setup(filepath: String? = null, openBrowser: Boolean = false): JsonObject {
