@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt.ytmibrary
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
 import okhttp3.Headers
@@ -129,4 +130,12 @@ fun JsonObject.update(target: JsonObject) {
     for ((key, value) in target.entrySet()) {
         add(key, value)
     }
+}
+fun JsonArray.subList(startIndex: Int, endIndex: Int? = null): JsonArray {
+    val sublist = JsonArray()
+    val end = endIndex ?: size()
+    for (i in startIndex until end) {
+        sublist.add(this[i])
+    }
+    return sublist
 }
