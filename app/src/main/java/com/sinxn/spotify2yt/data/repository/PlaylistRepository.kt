@@ -18,4 +18,8 @@ class PlaylistRepository(
     suspend fun addPlaylistWithTracks(playlists: Playlists,tracks: List<Tracks>) {
         dao.addPlaylistWithTracks(playlists,tracks)
     }
+
+    suspend fun deletePlaylist(play: Playlists) {
+        dao.deletePlaylist(play)
+    }
 }

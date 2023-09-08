@@ -83,6 +83,14 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.UploadPlayList -> {
 
             }
+
+            is HomeEvent.OnDelete -> {
+                viewModelScope.launch {
+                    playlistRepository.deletePlaylist(event.play)
+                    uiState.playlists.remove(event.play)
+                }
+
+            }
             is HomeEvent.ErrorDisplayed -> {
                 uiState = uiState.copy(
                     error = event.error

@@ -1,6 +1,7 @@
 package com.sinxn.spotify2yt.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -30,5 +31,8 @@ interface Dao {
             addTracks(it.copy(parent_id = playlistId))
         }
     }
+    @Transaction
+    @Delete
+    suspend fun deletePlaylist(play: Playlists)
 
 }
