@@ -2,10 +2,14 @@ package com.sinxn.spotify2yt.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.sinxn.spotify2yt.api.YTMGetCode
 import com.sinxn.spotify2yt.api.YTMGetToken
+import com.sinxn.spotify2yt.data.local.YoutifyDataBase
+import com.sinxn.spotify2yt.data.local.dao.Dao
+import com.sinxn.spotify2yt.data.repository.PlaylistRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,10 +21,32 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Singleton
+    @Provides
+    fun provideDataBase(
+        @ApplicationContext context: Context
+    ): YoutifyDataBase {
+        return Room.databaseBuilder(
+            context,
+            YoutifyDataBase::class.java,
+            YoutifyDataBase.DATABASE_NAME
+        ).build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideMetaDao(youtifyDataBase: YoutifyDataBase) = youtifyDataBase.dao()
+
+    @Provides
+    fun providePlaylistRepository(dao: Dao): PlaylistRepository {
+        return PlaylistRepository(dao)
+    }
 
     @Provides
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
@@ -30,7 +56,7 @@ object AppModule {
 
     private val interceptor: HttpLoggingInterceptor =
             HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-    val client = OkHttpClient.Builder()
+    private val client = OkHttpClient.Builder()
             .connectTimeout(2, TimeUnit.MINUTES)
             .writeTimeout(2, TimeUnit.MINUTES) // write timeout
             .readTimeout(2, TimeUnit.MINUTES) // read timeout

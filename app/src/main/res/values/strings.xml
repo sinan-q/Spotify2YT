@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Spotify2YT</string>
+    <string name="save_playlist">save playlist</string>
+    <string name="upload_playlist">upload playlist</string>
+    <string name="playlist_name_not_found">Name not found</string>
 </resources>
