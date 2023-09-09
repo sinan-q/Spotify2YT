@@ -9,26 +9,18 @@ import androidx.lifecycle.viewModelScope
 import com.adamratzman.spotify.SpotifyAppApi
 import com.adamratzman.spotify.SpotifyAppApiBuilder
 import com.adamratzman.spotify.SpotifyCredentials
-import com.adamratzman.spotify.models.Playlist
-import com.adamratzman.spotify.models.Track
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.data.repository.PlaylistRepository
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.domain.model.Tracks
 import com.sinxn.spotify2yt.repository.SharedPref
-import com.sinxn.spotify2yt.tools.similarityTo
-import com.sinxn.spotify2yt.tools.ytId
-import com.sinxn.spotify2yt.ui.home.DebugUtilis.v
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
 import com.sinxn.spotify2yt.ytmibrary.mixins.SearchMixin
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.abs
 
 
 @HiltViewModel
@@ -95,6 +87,18 @@ class HomeViewModel @Inject constructor(
                 uiState = uiState.copy(
                     error = event.error
                 )
+            }
+            is HomeEvent.OnSongAction -> {
+                when (event.songEvent){
+                    is SongEvent.Play -> {
+                        uiState = uiState.copy(
+                            play = "https://music.youtube.com/watch?v=${event.songEvent.play?.youtube_id}"
+                        )
+                    }
+                    is SongEvent.Reload -> {
+
+                    }
+                }
             }
         }
     }
@@ -166,7 +170,7 @@ data class UiState (
     val ytmApi: YTMusic? = null,
 
     val error: String? = null,
-
+    val play: String? = null
     )
 
 object DebugUtilis {

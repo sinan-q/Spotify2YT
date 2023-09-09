@@ -4,4 +4,5 @@
     <string name="upload_playlist">upload playlist</string>
     <string name="playlist_name_not_found">Name not found</string>
     <string name="delete_selected_playlist">Delete selected Playlist</string>
+    <string name="play_selected_song">Play selected Song on Youtube Music</string>
 </resources>

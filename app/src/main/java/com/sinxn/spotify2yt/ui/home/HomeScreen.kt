@@ -63,9 +63,9 @@ fun HomeScreen(
     }
     if (uiState.playlists.isEmpty())
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column {
-            OutlinedTextField(value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
-            Button(onClick = {
+        Column(modifier= Modifier.fillMaxWidth().padding(25.dp,0.dp), horizontalAlignment = Alignment.End) {
+            OutlinedTextField(modifier=Modifier.fillMaxWidth(),value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
+            Button(modifier=Modifier.padding(top=15.dp),onClick = {
                 viewModel.onEvent(HomeEvent.OnConvert(playlist))
                 navController.navigate(Routes.PLAYLIST_SCREEN)
             }) {
@@ -120,16 +120,28 @@ fun PlaylistCard(
                     }
                 }
                 Column(modifier = Modifier.padding(50.dp,20.dp)) {
-                    Text(text = formatDate(playlist.date),fontWeight = FontWeight.Light, fontSize = 14.sp,)
+                    Text(
+                        text = formatDate(playlist.date),
+                        fontWeight = FontWeight.Light,
+                        fontSize = 14.sp,
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(text = playlist.name, fontWeight = FontWeight.Bold, fontSize = 24.sp , maxLines = 1)
                     Spacer(modifier = Modifier.height(10.dp))
                     playlist.description?.let { Text(text = it, fontWeight = FontWeight.Light, fontSize = 14.sp, lineHeight = 15.sp, maxLines = 2) }
                     Spacer(modifier = Modifier.height(10.dp))
                     Row {
-                        Text(text = "${ playlist.count } Songs",fontWeight = FontWeight.Light, fontSize = 14.sp,)
+                        Text(
+                            text = "${playlist.count} Songs",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 14.sp,
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
-                        playlist.followers?.let { Text(text = "$it Followers",fontWeight = FontWeight.Light, fontSize = 14.sp,) }
+                        playlist.followers?.let { Text(
+                            text = "$it Followers",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 14.sp,
+                        ) }
                     }
                 }
             }
