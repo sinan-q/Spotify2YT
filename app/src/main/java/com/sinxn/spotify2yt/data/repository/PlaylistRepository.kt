@@ -22,4 +22,8 @@ class PlaylistRepository(
     suspend fun deletePlaylist(play: Playlists) {
         dao.deletePlaylist(play)
     }
+
+    suspend fun updateYoutubeId(id: Long, youtubeSongId: String) {
+        dao.updateYoutubeId(id,youtubeSongId)
+    }
 }

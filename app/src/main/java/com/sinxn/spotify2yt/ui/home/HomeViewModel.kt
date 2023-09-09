@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.adamratzman.spotify.SpotifyAppApi
 import com.adamratzman.spotify.SpotifyAppApiBuilder
 import com.adamratzman.spotify.SpotifyCredentials
+import com.adamratzman.spotify.models.Track
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.data.repository.PlaylistRepository
@@ -44,23 +45,12 @@ class HomeViewModel @Inject constructor(
                         )
                         res.tracks.items.forEach { playlistTrack ->
                             playlistTrack.track?.asTrack?.let {
-                                uiState.playlistSongs.add(
-                                    Tracks(
-                                        name = it.name,
-                                        spotify_id = it.id,
-                                        album_id = it.album.id,
-                                        artists = it.artists,
-                                        discNumber = it.discNumber,
-                                        durationMs = it.durationMs.toLong(),
-                                        explicit = it.explicit,
-                                        popularity = it.popularity,
-                                        parent_id = 0
-                                    )
-                                )
+                                val track = getTrack(it)
+                                uiState.playlistSongs.add(track)
+                                getYTSong(track)
                             }
                         }
                     }
-                    getYTSongs()
                     savePlaylist()
                 }
             }
@@ -91,9 +81,16 @@ class HomeViewModel @Inject constructor(
             is HomeEvent.OnSongAction -> {
                 when (event.songEvent){
                     is SongEvent.Play -> {
-                        uiState = uiState.copy(
-                            play = "https://music.youtube.com/watch?v=${event.songEvent.play?.youtube_id}"
-                        )
+                        if (event.songEvent.play?.youtube_id!=null) {
+                            uiState = uiState.copy(
+                                play = "https://music.youtube.com/watch?v=${event.songEvent.play?.youtube_id}"
+                            )
+                        }else {
+                            viewModelScope.launch {
+                                event.songEvent.play?.let { getYTSong(it) }
+                            }
+
+                        }
                     }
                     is SongEvent.Reload -> {
 
@@ -103,19 +100,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun getTrack(it: Track): Tracks {
+        return Tracks(name = it.name, spotify_id = it.id, album_id = it.album.id,
+            artists = it.artists, discNumber = it.discNumber, durationMs = it.durationMs.toLong(),
+            explicit = it.explicit, popularity = it.popularity, parent_id = 0
+        )
 
-    private suspend fun getYTSongs() {
-        uiState.playlistSongs.forEach { track ->
-            val songName = track.name.replace(Regex(" \\(feat.*\\..+\\)"), "")
-            var query = track.artists.joinToString { it.name + " " } + songName
-            query = query.replace("&", "")
-            val res = uiState.ytmApi?.let { SearchMixin(it).search(query) }
-            if (res != null && res.size() > 0) {
-                val targetSongId = getTopResult(res)
-                if (!targetSongId.isNullOrEmpty()) track.youtube_id = targetSongId
+    }
+
+
+    private suspend fun getYTSong(track: Tracks) {
+        val songName = track.name.replace(Regex(" \\(feat.*\\..+\\)"), "")
+        var query = track.artists.joinToString { it.name + " " } + songName
+        query = query.replace("&", "")
+        val res = uiState.ytmApi?.let { SearchMixin(it).search(query) }
+        if (res != null && res.size() > 0) {
+            val targetSongId = getTopResult(res)
+            if (!targetSongId.isNullOrEmpty()) {
+                playlistRepository.updateYoutubeId(track.id, targetSongId)
+                track.youtube_id = targetSongId
             }
         }
-
     }
 
 

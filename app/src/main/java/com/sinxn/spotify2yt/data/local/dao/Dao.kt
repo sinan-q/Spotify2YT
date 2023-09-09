@@ -35,4 +35,7 @@ interface Dao {
     @Delete
     suspend fun deletePlaylist(play: Playlists)
 
+    @Query("UPDATE tracks SET youtube_id=:youtubeSongId WHERE id=:id")
+    suspend fun updateYoutubeId(id: Long, youtubeSongId: String)
+
 }
