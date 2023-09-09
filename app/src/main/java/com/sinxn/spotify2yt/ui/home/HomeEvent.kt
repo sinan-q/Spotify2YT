@@ -15,5 +15,5 @@ sealed class HomeEvent {
 }
 sealed class SongEvent {
     data class Play(val play: Tracks?): SongEvent()
-    data class Reload(val play: Playlists): SongEvent()
+    data class Reload(val track: Tracks): SongEvent()
 }

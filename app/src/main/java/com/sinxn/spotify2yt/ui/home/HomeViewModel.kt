@@ -16,6 +16,7 @@ import com.sinxn.spotify2yt.data.repository.PlaylistRepository
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.domain.model.Tracks
 import com.sinxn.spotify2yt.repository.SharedPref
+import com.sinxn.spotify2yt.tools.getBestFitSongId
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
 import com.sinxn.spotify2yt.ytmibrary.mixins.SearchMixin
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -83,7 +84,7 @@ class HomeViewModel @Inject constructor(
                     is SongEvent.Play -> {
                         if (event.songEvent.play?.youtube_id!=null) {
                             uiState = uiState.copy(
-                                play = "https://music.youtube.com/watch?v=${event.songEvent.play?.youtube_id}"
+                                play = "https://music.youtube.com/watch?v=${event.songEvent.play.youtube_id}"
                             )
                         }else {
                             viewModelScope.launch {
@@ -93,7 +94,7 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                     is SongEvent.Reload -> {
-
+                        uiState.playlistSongs.findLast { it == event.songEvent.track}?.youtube_id = null
                     }
                 }
             }
@@ -111,11 +112,11 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun getYTSong(track: Tracks) {
         val songName = track.name.replace(Regex(" \\(feat.*\\..+\\)"), "")
-        var query = track.artists.joinToString { it.name + " " } + songName
+        var query = "${track.artists.joinToString { it.name + " " }}$songName "
         query = query.replace("&", "")
         val res = uiState.ytmApi?.let { SearchMixin(it).search(query) }
         if (res != null && res.size() > 0) {
-            val targetSongId = getTopResult(res)
+            val targetSongId = getTopResult(res,track)
             if (!targetSongId.isNullOrEmpty()) {
                 playlistRepository.updateYoutubeId(track.id, targetSongId)
                 track.youtube_id = targetSongId
@@ -124,15 +125,13 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private fun getTopResult(res: JsonArray): String? {
-        res.forEach {
-            it as JsonObject
-            if (it["category"].asString.equals("Top result"))
-                return if (it.has("videoId"))
-                    it["videoId"].asString
-                else null
+    private fun getTopResult(res: JsonArray, track: Tracks): String? {
+        for(it in res){ it as JsonObject
+            if (it["category"].asString.equals("Top result") && it.has("videoId") && !it["videoId"].asString.isNullOrEmpty())
+                     return it["videoId"].asString
+            else break
         }
-        return null
+        return getBestFitSongId(res,track)
     }
 
     var isLogged = false

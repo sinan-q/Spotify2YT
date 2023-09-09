@@ -1,5 +1,7 @@
 package com.sinxn.spotify2yt.ui.home
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +27,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +51,7 @@ fun PlayListScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
-
+    val context = LocalContext.current
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             Modifier
@@ -74,6 +77,12 @@ fun PlayListScreen(
                 })
             }
         })
+    }
+    LaunchedEffect(uiState.play) {
+        if (uiState.play!=null) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uiState.play))
+            context.startActivity(intent)
+        }
     }
 
 }
@@ -103,14 +112,14 @@ fun AlbumCard(
                 Text(text = playlistTrack?.name?: "" )
             }
             IconToggleButton(checked = optionsState, onCheckedChange = {optionsState = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.delete_selected_playlist))
+                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more_selected_song_actions))
                 DropdownMenu(
                     expanded = optionsState,
                     onDismissRequest = { optionsState = false }) {
                     DropdownMenuItem(
-                        text = { Text(text = "TODO") },
+                        text = { Text(text = "Reload") },
                         onClick = {
-                            onAction(HomeEvent.ErrorDisplayed("TODO"))
+                            onAction(HomeEvent.OnSongAction(SongEvent.Reload(playlistTrack!!)))
                         })
                 }
             }
