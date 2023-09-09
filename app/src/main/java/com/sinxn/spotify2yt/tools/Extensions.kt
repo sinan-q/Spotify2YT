@@ -16,7 +16,7 @@ var Track.ytId: String?
         urlMap[this] = value
     }
 
-fun String.similarityTo(that: String): Int {
+fun String.similarityTo(that: String): Float {
     val m = this.length
     val n = that.length
     val dp = Array(m + 1) { IntArray(n + 1) }
@@ -31,5 +31,5 @@ fun String.similarityTo(that: String): Int {
             }
         }
     }
-    return dp[m][n]
+    return 1f - dp[m][n] / n.toFloat()
 }
