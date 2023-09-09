@@ -14,15 +14,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +45,7 @@ import androidx.navigation.NavController
 import com.sinxn.spotify2yt.R
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.tools.Routes
+import com.sinxn.spotify2yt.ui.home.components.AddPlaylistDialog
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,27 +58,22 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
-
+    var playlistDialogState by remember { mutableStateOf(false) }
     var playlist by remember {
         mutableStateOf("")
     }
     LaunchedEffect(true) {
         if (!viewModel.isLogged) navController.navigate(Routes.SETUP_SCREEN)
     }
-    if (uiState.playlists.isEmpty())
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(modifier= Modifier.fillMaxWidth().padding(25.dp,0.dp), horizontalAlignment = Alignment.End) {
-            OutlinedTextField(modifier=Modifier.fillMaxWidth(),value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
-            Button(modifier=Modifier.padding(top=15.dp),onClick = {
-                viewModel.onEvent(HomeEvent.OnConvert(playlist))
-                navController.navigate(Routes.PLAYLIST_SCREEN)
-            }) {
-                Text(text = "Convert")
-            }
+    Scaffold(floatingActionButton = {
+        FloatingActionButton(onClick = { playlistDialogState = true}) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_playlist))
         }
-    }
-    else {
-        LazyColumn() {
+    }) {padding->
+        LazyColumn(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)) {
             items(uiState.playlists) {playlist->
                 PlaylistCard(playlist, onOptionClick = {
                     viewModel.onEvent(it)
@@ -85,6 +84,27 @@ fun HomeScreen(
             }
         }
     }
+    if (playlistDialogState) AddPlaylistDialog(onDismiss = { playlistDialogState = false }, onConfirm = {
+        viewModel.onEvent(HomeEvent.OnConvert(playlist))
+        navController.navigate(Routes.PLAYLIST_SCREEN)
+    })
+//    Box(Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
+//        Column(modifier= Modifier
+//            .fillMaxWidth()
+//            .padding(25.dp, 0.dp), horizontalAlignment = Alignment.End) {
+//            OutlinedTextField(modifier=Modifier.fillMaxWidth(),value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
+//            Button(modifier=Modifier.padding(top=15.dp),onClick = {
+//                viewModel.onEvent(HomeEvent.OnConvert(playlist))
+//                navController.navigate(Routes.PLAYLIST_SCREEN)
+//            }) {
+//                Text(text = "Convert")
+//            }
+//        }
+//    }
+
+
+
+
 
 }
 

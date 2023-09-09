@@ -61,7 +61,7 @@ fun PlayListScreen(
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomEnd), horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = { viewModel.savePlaylist() }) {
+                IconButton(onClick = {  }) {
                     Icon(painter = painterResource(id = R.drawable.playlist_save_ic), contentDescription = stringResource(R.string.save_playlist))
                 }
                 IconButton(onClick = { viewModel.uploadPlaylist() }) {

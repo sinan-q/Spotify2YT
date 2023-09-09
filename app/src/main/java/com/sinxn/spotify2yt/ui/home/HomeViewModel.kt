@@ -48,11 +48,11 @@ class HomeViewModel @Inject constructor(
                             playlistTrack.track?.asTrack?.let {
                                 val track = getTrack(it)
                                 uiState.playlistSongs.add(track)
-                                getYTSong(track)
+                                launch { getYTSong(track) }
                             }
                         }
                     }
-                    savePlaylist()
+                    uiState.playlist?.let { playlistRepository.addPlaylistWithTracks(it,uiState.playlistSongs) }
                 }
             }
             is HomeEvent.OnSelect -> {
@@ -152,13 +152,6 @@ class HomeViewModel @Inject constructor(
             }
 
         }
-    }
-
-    fun savePlaylist() {
-        viewModelScope.launch {
-            uiState.playlist?.let { playlistRepository.addPlaylistWithTracks(it,uiState.playlistSongs) }
-        }
-
     }
 
     fun uploadPlaylist() {
