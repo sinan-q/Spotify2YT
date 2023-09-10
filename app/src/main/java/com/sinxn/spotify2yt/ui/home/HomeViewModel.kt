@@ -18,6 +18,7 @@ import com.sinxn.spotify2yt.domain.model.Tracks
 import com.sinxn.spotify2yt.repository.SharedPref
 import com.sinxn.spotify2yt.tools.getTopResult
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
+import com.sinxn.spotify2yt.ytmibrary.mixins.PlaylistMixin
 import com.sinxn.spotify2yt.ytmibrary.mixins.SearchMixin
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ class HomeViewModel @Inject constructor(
                         ytmApi = YTMusic(File(storage, "auth").path),
                         playlists = playlistRepository.getAllPlaylists().toMutableStateList()
                     )
+
                 }
             }
 
@@ -72,7 +74,7 @@ class HomeViewModel @Inject constructor(
                             playlistTrack.track?.asTrack?.let {
                                 val track = getTrack(it)
                                 uiState.playlistSongs.add(track)
-                                launch { getYTSong(track) }
+                                getYTSong(track)
                             }
                         }
                     }
@@ -88,6 +90,28 @@ class HomeViewModel @Inject constructor(
                 }
             }
             is HomeEvent.UploadPlayList -> {
+                viewModelScope.launch {
+                    if (event.title.isEmpty()) {
+                        uiState = uiState.copy(error = "Title is Empty")
+                        return@launch
+                    }
+                    val videoIds = event.videoIds.mapNotNull { it.youtube_id }
+                    if (videoIds.isEmpty()) {
+                        uiState = uiState.copy(error = "videoIds is Empty")
+                        return@launch
+                    }
+                    var sourcePlaylist: String? = event.sourcePlaylist
+                    if (sourcePlaylist.isNullOrEmpty()) sourcePlaylist = null
+                    try {
+                        val ytPlaylistId = PlaylistMixin(yTMusic = uiState.ytmApi!!).createPlaylist(
+                            event.title, event.description, event.privacyStatus, videoIds, sourcePlaylist
+                        )
+                        uiState.playlist?.id?.let { playlistRepository.updateYoutubePlaylistId(it,ytPlaylistId) }
+                    }catch (_: Exception) {
+
+                    }
+
+                }
 
             }
 
@@ -148,10 +172,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-    fun uploadPlaylist() {
-        TODO("Not yet implemented")
-    }
 }
 
 data class UiState (

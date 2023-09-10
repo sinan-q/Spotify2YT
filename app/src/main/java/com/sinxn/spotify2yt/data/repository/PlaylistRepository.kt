@@ -28,4 +28,8 @@ class PlaylistRepository(
     suspend fun updateYoutubeId(id: Long, youtubeSongId: String) {
         dao.updateYoutubeId(id,youtubeSongId)
     }
+
+    suspend fun updateYoutubePlaylistId(playlistId: Long,ytPlaylistId: String) {
+        dao.updateYoutubePlaylistId(playlistId,ytPlaylistId)
+    }
 }

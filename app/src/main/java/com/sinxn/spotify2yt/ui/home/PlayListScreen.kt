@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sinxn.spotify2yt.R
 import com.sinxn.spotify2yt.domain.model.Tracks
+import com.sinxn.spotify2yt.ui.home.components.UploadPlaylistDialog
 
 @Composable
 fun PlayListScreen(
@@ -58,6 +59,8 @@ fun PlayListScreen(
         if (!playlistUrl.isNullOrEmpty() && viewModel.spotifyAppApi!=null) viewModel.onEvent(HomeEvent.OnConvert(playlistUrl))
 
     }
+    var uploadDialogState by remember { mutableStateOf(false) }
+
     val uiState = viewModel.uiState
     val context = LocalContext.current
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -67,13 +70,18 @@ fun PlayListScreen(
                 .fillMaxHeight(0.25f)) {
             Text(text = uiState.playlist?.name?: stringResource(R.string.playlist_name_not_found),fontWeight = FontWeight.Bold, fontSize = 24.sp ,modifier = Modifier.align(Alignment.Center))
             Row(modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().padding(15.dp)
                 .align(Alignment.BottomEnd), horizontalArrangement = Arrangement.End) {
                 IconButton(onClick = {  }) {
                     Icon(painter = painterResource(id = R.drawable.playlist_save_ic), contentDescription = stringResource(R.string.save_playlist))
                 }
-                IconButton(onClick = { viewModel.uploadPlaylist() }) {
-                    Icon(painter = painterResource(id = R.drawable.playlist_upload_ic), contentDescription = stringResource(R.string.upload_playlist))
+                if (uiState.playlist?.youtube_id==null) {
+                    IconButton(onClick = { uploadDialogState = true }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.playlist_upload_ic),
+                            contentDescription = stringResource(R.string.upload_playlist)
+                        )
+                    }
                 }
             }
 
@@ -92,6 +100,15 @@ fun PlayListScreen(
             context.startActivity(intent)
         }
     }
+    if (uploadDialogState) UploadPlaylistDialog(
+        _title = uiState.playlist?.name,
+        _description = uiState.playlist?.description,
+        videoIds = uiState.playlistSongs,
+        onDismiss = { uploadDialogState = false },
+        onConfirm = {
+            viewModel.onEvent(it)
+        }
+    )
 
 }
 

@@ -9,4 +9,9 @@
     <string name="add_playlist">Add New Spotify Playlist</string>
     <string name="enter_playlist_link">Add Playlist</string>
     <string name="paste_spotify_link">Paste the Spotify Link</string>
+    <string name="upload_playlist_title">Title</string>
+    <string name="upload_playlist_desc">Description</string>
+    <string name="upload_playlist_source_playlist">Source Playlist</string>
+    <string name="upload_button">Upload</string>
+    <string name="upload_playlist_privacy_status">Privacy status</string>
 </resources>

@@ -5,7 +5,12 @@ import com.sinxn.spotify2yt.domain.model.Tracks
 
 sealed class HomeEvent {
     data class OnConvert(val playlistUrl: String): HomeEvent()
-    object UploadPlayList: HomeEvent()
+    data class UploadPlayList(
+        val title: String,
+        val description: String,
+        val videoIds: List<Tracks>,
+        val privacyStatus: String = "PRIVATE",
+        val sourcePlaylist: String? = null): HomeEvent()
     data class OnSelect(val play: Playlists): HomeEvent()
     data class OnDelete(val play: Playlists): HomeEvent()
 

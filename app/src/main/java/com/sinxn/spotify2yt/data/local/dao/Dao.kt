@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.domain.model.Tracks
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface Dao {
@@ -37,5 +36,8 @@ interface Dao {
 
     @Query("UPDATE tracks SET youtube_id=:youtubeSongId WHERE id=:id")
     suspend fun updateYoutubeId(id: Long, youtubeSongId: String)
+
+    @Query("UPDATE playlists SET youtube_id=:youtubePlaylistId WHERE id=:playlistId")
+    suspend fun updateYoutubePlaylistId(playlistId: Long, youtubePlaylistId: String)
 
 }
