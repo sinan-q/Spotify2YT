@@ -48,8 +48,16 @@ import com.sinxn.spotify2yt.domain.model.Tracks
 @Composable
 fun PlayListScreen(
     navController: NavController,
+    playlistUrl: String?= "",
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(true) {
+        viewModel.init()
+    }
+    LaunchedEffect(viewModel.spotifyAppApi) {
+        if (!playlistUrl.isNullOrEmpty() && viewModel.spotifyAppApi!=null) viewModel.onEvent(HomeEvent.OnConvert(playlistUrl))
+
+    }
     val uiState = viewModel.uiState
     val context = LocalContext.current
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {

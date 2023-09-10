@@ -42,9 +42,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.navOptions
 import com.sinxn.spotify2yt.R
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.tools.Routes
+import com.sinxn.spotify2yt.ui.home.DebugUtilis.v
 import com.sinxn.spotify2yt.ui.home.components.AddPlaylistDialog
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -55,16 +57,10 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState
     var playlistDialogState by remember { mutableStateOf(false) }
-    var playlist by remember {
-        mutableStateOf("")
-    }
-    LaunchedEffect(true) {
-        if (!viewModel.isLogged) navController.navigate(Routes.SETUP_SCREEN)
-    }
     Scaffold(floatingActionButton = {
         FloatingActionButton(onClick = { playlistDialogState = true}) {
             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_playlist))
@@ -85,27 +81,13 @@ fun HomeScreen(
         }
     }
     if (playlistDialogState) AddPlaylistDialog(onDismiss = { playlistDialogState = false }, onConfirm = {
-        viewModel.onEvent(HomeEvent.OnConvert(playlist))
+        viewModel.onEvent(HomeEvent.OnConvert(it))
         navController.navigate(Routes.PLAYLIST_SCREEN)
     })
-//    Box(Modifier.fillMaxSize().padding(it), contentAlignment = Alignment.Center) {
-//        Column(modifier= Modifier
-//            .fillMaxWidth()
-//            .padding(25.dp, 0.dp), horizontalAlignment = Alignment.End) {
-//            OutlinedTextField(modifier=Modifier.fillMaxWidth(),value = playlist,label={ Text(text = "Paste the Spotify Link")}, onValueChange = {playlist=it})
-//            Button(modifier=Modifier.padding(top=15.dp),onClick = {
-//                viewModel.onEvent(HomeEvent.OnConvert(playlist))
-//                navController.navigate(Routes.PLAYLIST_SCREEN)
-//            }) {
-//                Text(text = "Convert")
-//            }
-//        }
-//    }
-
-
-
-
-
+    LaunchedEffect(true) {
+        viewModel.init()
+        if (!viewModel.isLogged) navController.navigate(Routes.SETUP_SCREEN)
+    }
 }
 
 @Composable

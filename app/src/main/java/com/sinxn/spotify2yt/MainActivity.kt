@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,8 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.sinxn.spotify2yt.navigation.Navigation
+import com.sinxn.spotify2yt.tools.Routes
+import com.sinxn.spotify2yt.ui.home.HomeEvent
+import com.sinxn.spotify2yt.ui.home.HomeViewModel
 import com.sinxn.spotify2yt.ui.theme.Spotify2YTTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,6 +44,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val viewModel: HomeViewModel = hiltViewModel()
             val collapsedTextSize = 16
             val expandedTextSize = 28
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
@@ -45,7 +52,6 @@ class MainActivity : ComponentActivity() {
             )
             var mDisplayMenu by remember { mutableStateOf(false) }
             val navController = rememberNavController()
-            val context = LocalContext.current
             Spotify2YTTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -77,9 +83,13 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                         )
-                        Navigation(navController = navController)
+                        Navigation(navController = navController )
                     }
                 }
+            }
+            LaunchedEffect(true) {
+                if (Intent.ACTION_VIEW == intent.action && intent.data!=null)
+                    navController.navigate(Routes.PLAYLIST_SCREEN+"/?url=${intent.data.toString()}")
             }
         }
     }

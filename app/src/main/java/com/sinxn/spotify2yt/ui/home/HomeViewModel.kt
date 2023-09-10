@@ -2,8 +2,11 @@ package com.sinxn.spotify2yt.ui.home
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adamratzman.spotify.SpotifyAppApi
@@ -32,14 +35,38 @@ class HomeViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
 
+    var spotifyAppApi: SpotifyAppApi? = null
     var uiState by mutableStateOf(UiState())
         private set
+    var isLogged = false
+
+    fun init() {
+        isLogged = sharedPref.isLogged()
+        if (isLogged) {
+            viewModelScope.launch {
+                if (spotifyAppApi==null) {
+                    val spotifyCred = SpotifyCredentials().apply {
+                        clientId = sharedPref.spotifyClientId
+                        clientSecret = sharedPref.spotifyClientSecret
+                    }
+                    spotifyAppApi = SpotifyAppApiBuilder(spotifyCred).build()
+
+                    uiState = uiState.copy(
+                        ytmApi = YTMusic(File(storage, "auth").path),
+                        playlists = playlistRepository.getAllPlaylists().toMutableStateList()
+                    )
+                }
+            }
+
+        }
+    }
     fun onEvent(event: HomeEvent){
         when (event) {
             is HomeEvent.OnConvert -> {
                 viewModelScope.launch {
+                    if (spotifyAppApi==null) init()
                     val playlistId = event.playlistUrl.trim('/').split('/').last()
-                    val res = uiState.spotifyAppApi?.playlists?.getPlaylist(playlistId)
+                    val res = spotifyAppApi?.playlists?.getPlaylist(playlistId)
                     res?.let {
                         uiState = uiState.copy(
                             playlist = Playlists(res.name, playlistId, null, res.owner, res.description, res.followers.total, res.primaryColor, res.images[0].url, res.tracks.total, false, System.currentTimeMillis())
@@ -134,25 +161,6 @@ class HomeViewModel @Inject constructor(
         return getBestFitSongId(res,track)
     }
 
-    var isLogged = false
-
-    init {
-        isLogged = sharedPref.isLogged()
-        if (isLogged) {
-            viewModelScope.launch {
-                val spotifyCred = SpotifyCredentials().apply {
-                    clientId = sharedPref.spotifyClientId
-                    clientSecret = sharedPref.spotifyClientSecret
-                }
-                uiState = uiState.copy(
-                    ytmApi = YTMusic(File(storage, "auth").path),
-                    spotifyAppApi = SpotifyAppApiBuilder(spotifyCred).build(),
-                    playlists = playlistRepository.getAllPlaylists().toMutableList()
-                )
-            }
-
-        }
-    }
 
     fun uploadPlaylist() {
         TODO("Not yet implemented")
@@ -160,10 +168,9 @@ class HomeViewModel @Inject constructor(
 }
 
 data class UiState (
-    val playlistSongs: MutableList<Tracks> = mutableListOf(),
+    val playlistSongs: SnapshotStateList<Tracks> = mutableStateListOf(),
     val playlist: Playlists? = null,
-    val playlists: MutableList<Playlists> = mutableListOf(),
-    val spotifyAppApi: SpotifyAppApi? = null,
+    val playlists: SnapshotStateList<Playlists> = mutableStateListOf(),
     val ytmApi: YTMusic? = null,
 
     val error: String? = null,
