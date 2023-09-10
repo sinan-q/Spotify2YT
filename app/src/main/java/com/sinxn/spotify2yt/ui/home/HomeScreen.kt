@@ -68,14 +68,14 @@ fun HomeScreen(
                 PlaylistCard(playlist, onOptionClick = {
                     viewModel.onEvent(it)
                 }, onClick = {
-                    viewModel.onEvent(HomeEvent.OnSelect(playlist))
+                    viewModel.onEvent(PlaylistEvent.OnSelect(playlist))
                     navController.navigate(Routes.PLAYLIST_SCREEN)
                 } )
             }
         }
     }
     if (playlistDialogState) AddPlaylistDialog(onDismiss = { playlistDialogState = false }, onConfirm = {
-        viewModel.onEvent(HomeEvent.OnConvert(it))
+        viewModel.onEvent(PlaylistEvent.OnConvert(it))
         navController.navigate(Routes.PLAYLIST_SCREEN)
     })
     LaunchedEffect(true) {
@@ -88,7 +88,7 @@ fun HomeScreen(
 fun PlaylistCard(
     playlist: Playlists,
     onClick: () -> Unit,
-    onOptionClick: (HomeEvent) -> Unit
+    onOptionClick: (PlaylistEvent) -> Unit
 ) {
     var optionsState by remember {
         mutableStateOf(false)
@@ -110,7 +110,7 @@ fun PlaylistCard(
                             DropdownMenuItem(
                                 text = { Text(text = "Delete") },
                                 onClick = {
-                                    onOptionClick(HomeEvent.OnDelete(playlist))
+                                    onOptionClick(PlaylistEvent.OnDelete(playlist))
                                 })
                         }
                     }

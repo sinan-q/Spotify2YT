@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sinxn.spotify2yt.R
 import com.sinxn.spotify2yt.domain.model.Tracks
-import com.sinxn.spotify2yt.ui.home.HomeEvent
+import com.sinxn.spotify2yt.ui.home.PlaylistEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +30,7 @@ fun UploadPlaylistDialog(
     _description: String?,
     videoIds: List<Tracks>,
     onDismiss: () -> Unit,
-    onConfirm: (HomeEvent) -> Unit
+    onConfirm: (PlaylistEvent) -> Unit
 
 ) {
     var title by remember { mutableStateOf(_title?:"") }
@@ -73,7 +73,7 @@ fun UploadPlaylistDialog(
         confirmButton = {
             Button(onClick = {
                 onDismiss()
-                onConfirm(HomeEvent.UploadPlayList(title, description, videoIds,if (privacyStatus) "PRIVATE" else "PUBLIC" , sourcePlaylist))
+                onConfirm(PlaylistEvent.Upload(title, description, videoIds,if (privacyStatus) "PRIVATE" else "PUBLIC" , sourcePlaylist))
             }) {
                 Text(stringResource(R.string.upload_button))
             }

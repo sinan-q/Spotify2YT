@@ -14,4 +14,5 @@
     <string name="upload_playlist_source_playlist">Source Playlist</string>
     <string name="upload_button">Upload</string>
     <string name="upload_playlist_privacy_status">Privacy status</string>
+    <string name="open_playlist_yt">Open Playlist in youtube</string>
 </resources>

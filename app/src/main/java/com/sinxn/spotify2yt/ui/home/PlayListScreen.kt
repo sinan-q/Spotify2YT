@@ -56,7 +56,7 @@ fun PlayListScreen(
         viewModel.init()
     }
     LaunchedEffect(viewModel.spotifyAppApi) {
-        if (!playlistUrl.isNullOrEmpty() && viewModel.spotifyAppApi!=null) viewModel.onEvent(HomeEvent.OnConvert(playlistUrl))
+        if (!playlistUrl.isNullOrEmpty() && viewModel.spotifyAppApi!=null) viewModel.onEvent(PlaylistEvent.OnConvert(playlistUrl))
 
     }
     var uploadDialogState by remember { mutableStateOf(false) }
@@ -80,6 +80,13 @@ fun PlayListScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.playlist_upload_ic),
                             contentDescription = stringResource(R.string.upload_playlist)
+                        )
+                    }
+                } else {
+                    IconButton(onClick = { viewModel.onEvent(PlaylistEvent.Play(uiState.playlist))}) {
+                        Icon(
+                            Icons.Filled.PlayArrow,
+                            contentDescription = stringResource(R.string.open_playlist_yt)
                         )
                     }
                 }
@@ -115,7 +122,7 @@ fun PlayListScreen(
 @Composable
 fun AlbumCard(
     playlistTrack: Tracks?,
-    onAction: (HomeEvent) -> Unit,
+    onAction: (PlaylistEvent) -> Unit,
 ) {
     var optionsState by remember { mutableStateOf(false) }
     val ytIdNotFound = playlistTrack?.youtube_id.isNullOrEmpty()
@@ -125,10 +132,10 @@ fun AlbumCard(
             .fillMaxWidth(0.9f)
             .padding(0.dp, 5.dp)
             .clickable {
-                onAction(HomeEvent.OnSongAction(SongEvent.Play(playlistTrack)))
+                onAction(SongEvent.Play(playlistTrack))
             }) {
         Row(modifier = Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = { onAction(HomeEvent.OnSongAction(SongEvent.Play(playlistTrack))) }) {
+            IconButton(onClick = { onAction(SongEvent.Play(playlistTrack)) }) {
                 Icon(if (ytIdNotFound) Icons.Filled.Refresh else Icons.Filled.PlayArrow, contentDescription = stringResource(R.string.play_selected_song))
             }
             Column(modifier = Modifier
@@ -144,16 +151,11 @@ fun AlbumCard(
                     DropdownMenuItem(
                         text = { Text(text = "Reload") },
                         onClick = {
-                            onAction(HomeEvent.OnSongAction(SongEvent.Reload(playlistTrack!!)))
-                        })
+                            onAction(SongEvent.Reload(playlistTrack!!))
+                        }
+                    )
                 }
             }
-
         }
-
-
-
-
     }
-
 }

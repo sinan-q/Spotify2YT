@@ -59,9 +59,9 @@ class HomeViewModel @Inject constructor(
 
         }
     }
-    fun onEvent(event: HomeEvent){
+    fun onEvent(event: PlaylistEvent){
         when (event) {
-            is HomeEvent.OnConvert -> {
+            is PlaylistEvent.OnConvert -> {
                 viewModelScope.launch {
                     if (spotifyAppApi==null) init()
                     val playlistId = event.playlistUrl.trim('/').split('/').last()
@@ -81,7 +81,7 @@ class HomeViewModel @Inject constructor(
                     uiState.playlist?.let { playlistRepository.addPlaylistWithTracks(it,uiState.playlistSongs) }
                 }
             }
-            is HomeEvent.OnSelect -> {
+            is PlaylistEvent.OnSelect -> {
                 viewModelScope.launch {
                     uiState = uiState.copy(
                         playlist = event.play,
@@ -89,7 +89,7 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }
-            is HomeEvent.UploadPlayList -> {
+            is PlaylistEvent.Upload -> {
                 viewModelScope.launch {
                     if (event.title.isEmpty()) {
                         uiState = uiState.copy(error = "Title is Empty")
@@ -115,36 +115,36 @@ class HomeViewModel @Inject constructor(
 
             }
 
-            is HomeEvent.OnDelete -> {
+            is PlaylistEvent.OnDelete -> {
                 viewModelScope.launch {
                     playlistRepository.deletePlaylist(event.play)
                     uiState.playlists.remove(event.play)
                 }
 
             }
-            is HomeEvent.ErrorDisplayed -> {
+            is PlaylistEvent.ErrorDisplayed -> {
                 uiState = uiState.copy(
                     error = event.error
                 )
             }
-            is HomeEvent.OnSongAction -> {
-                when (event.songEvent){
-                    is SongEvent.Play -> {
-                        if (event.songEvent.play?.youtube_id!=null) {
-                            uiState = uiState.copy(
-                                play = "https://music.youtube.com/watch?v=${event.songEvent.play.youtube_id}"
-                            )
-                        }else {
-                            viewModelScope.launch {
-                                event.songEvent.play?.let { getYTSong(it) }
-                            }
-
-                        }
-                    }
-                    is SongEvent.Reload -> {
-                        uiState.playlistSongs.findLast { it == event.songEvent.track}?.youtube_id = null
+            is PlaylistEvent.Play -> {
+                uiState = uiState.copy(
+                    play = "https://music.youtube.com/playlist?list=${event.play.youtube_id}"
+                )
+            }
+            is SongEvent.Play -> {
+                if (event.play?.youtube_id != null) {
+                    uiState = uiState.copy(
+                        play = "https://music.youtube.com/watch?v=${event.play.youtube_id}"
+                    )
+                } else {
+                    viewModelScope.launch {
+                        event.play?.let { getYTSong(it) }
                     }
                 }
+            }
+            is SongEvent.Reload -> {
+                uiState.playlistSongs.findLast { it == event.track}?.youtube_id = null
             }
         }
     }
