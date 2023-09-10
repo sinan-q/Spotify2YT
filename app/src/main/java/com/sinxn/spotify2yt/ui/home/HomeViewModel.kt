@@ -1,6 +1,5 @@
 package com.sinxn.spotify2yt.ui.home
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,13 +12,11 @@ import com.adamratzman.spotify.SpotifyAppApi
 import com.adamratzman.spotify.SpotifyAppApiBuilder
 import com.adamratzman.spotify.SpotifyCredentials
 import com.adamratzman.spotify.models.Track
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.data.repository.PlaylistRepository
 import com.sinxn.spotify2yt.domain.model.Playlists
 import com.sinxn.spotify2yt.domain.model.Tracks
 import com.sinxn.spotify2yt.repository.SharedPref
-import com.sinxn.spotify2yt.tools.getBestFitSongId
+import com.sinxn.spotify2yt.tools.getTopResult
 import com.sinxn.spotify2yt.ytmibrary.YTMusic
 import com.sinxn.spotify2yt.ytmibrary.mixins.SearchMixin
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -152,16 +149,6 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private fun getTopResult(res: JsonArray, track: Tracks): String? {
-        for(it in res){ it as JsonObject
-            if (it["category"].asString.equals("Top result") && it.has("videoId") && !it["videoId"].asString.isNullOrEmpty())
-                     return it["videoId"].asString
-            else break
-        }
-        return getBestFitSongId(res,track)
-    }
-
-
     fun uploadPlaylist() {
         TODO("Not yet implemented")
     }
@@ -177,24 +164,3 @@ data class UiState (
     val play: String? = null
     )
 
-object DebugUtilis {
-    var _charLimit = 2000
-
-    @JvmStatic
-    fun v(tag: String?, message: String): Int {
-        // If the message is less than the limit just show
-        if (message.length < _charLimit) {
-            return Log.v(tag, message)
-        }
-        val sections = message.length / _charLimit
-        for (i in 0..sections) {
-            val max = _charLimit * (i + 1)
-            if (max >= message.length) {
-                Log.v(tag, message.substring(_charLimit * i))
-            } else {
-                Log.v(tag, message.substring(_charLimit * i, max))
-            }
-        }
-        return 1
-    }
-}

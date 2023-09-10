@@ -1,5 +1,6 @@
 package com.sinxn.spotify2yt.tools
 
+import android.util.Log
 import com.adamratzman.spotify.models.Track
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -7,6 +8,35 @@ import com.sinxn.spotify2yt.domain.model.Tracks
 import java.util.Locale
 import kotlin.math.abs
 
+object DebugUtilis {
+    var _charLimit = 2000
+
+    @JvmStatic
+    fun v(tag: String?, message: String): Int {
+        // If the message is less than the limit just show
+        if (message.length < _charLimit) {
+            return Log.v(tag, message)
+        }
+        val sections = message.length / _charLimit
+        for (i in 0..sections) {
+            val max = _charLimit * (i + 1)
+            if (max >= message.length) {
+                Log.v(tag, message.substring(_charLimit * i))
+            } else {
+                Log.v(tag, message.substring(_charLimit * i, max))
+            }
+        }
+        return 1
+    }
+}
+fun getTopResult(res: JsonArray, track: Tracks): String? {
+    for(it in res){ it as JsonObject
+        if (it["category"].asString.equals("Top result") && it.has("videoId") && !it["videoId"].asString.isNullOrEmpty())
+            return it["videoId"].asString
+        else break
+    }
+    return getBestFitSongId(res,track)
+}
 fun getBestFitSongId(ytmResults: JsonArray, spoti: Tracks): String? {
     val matchScore = hashMapOf<String, Float>()
     val titleScore = hashMapOf<String, Float>()
