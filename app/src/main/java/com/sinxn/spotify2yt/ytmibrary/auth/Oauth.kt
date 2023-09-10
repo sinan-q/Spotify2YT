@@ -1,6 +1,5 @@
 package com.sinxn.spotify2yt.ytmibrary.auth
 
-import android.util.Log
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
@@ -127,7 +126,7 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
             token.update(refreshToken(token["refresh_token"].asString))
             saveToken(token, filepath)
         }
-        headers.addProperty("Authorization","${token["token_type"]} ${token["access_token"]}")
+        headers.addProperty("Authorization","${token["token_type"].asString} ${token["access_token"].asString}")
         headers.addProperty("Content-Type", "application/json")
         headers.addProperty("X-Goog-Request-Time",System.currentTimeMillis() / 1000)
         return headers

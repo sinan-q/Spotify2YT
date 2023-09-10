@@ -158,9 +158,9 @@ open class SearchMixin(private val yTMusic: YTMusic) {
 
                         yTMusic.sendRequest(endpoint, body, it)
                     }
-                    val parseFunc: (JsonObject) -> JsonArray? = {
+                    val parseFunc: (JsonArray) -> JsonArray? = {
                         parseSearchResults(
-                            it.asJsonArray,
+                            it,
                             searchResultTypes,
                             type,
                             category?.asString

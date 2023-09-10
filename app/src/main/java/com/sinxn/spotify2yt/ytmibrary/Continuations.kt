@@ -8,7 +8,7 @@ suspend fun getContinuations(
     continuation_type: String,
     limit: Int?,
     requestFunc: suspend (String) -> JsonObject,
-    parse_func: (JsonObject) -> JsonArray?,
+    parse_func: (JsonArray) -> JsonArray?,
     ctoken_path: String="",
     reloadable: Boolean =false
 ): JsonArray
@@ -36,12 +36,12 @@ fun getContinuationString(ctoken: String?): String {
     return if (!ctoken.isNullOrEmpty())"&ctoken=$ctoken&continuation=$ctoken" else ""
 }
 
-fun getContinuationContents(continuation: JsonObject, parseFunc: (JsonObject) -> JsonArray?): JsonArray? {
+fun getContinuationContents(continuation: JsonObject, parseFunc: (JsonArray) -> JsonArray?): JsonArray? {
     val terms = listOf("contents", "items")
 
     for (term in terms) {
         if ( continuation.has(term)) {
-            return parseFunc(continuation[term].asJsonObject)
+            return parseFunc(continuation[term].asJsonArray)
         }
     }
 

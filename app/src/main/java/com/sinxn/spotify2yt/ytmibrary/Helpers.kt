@@ -2,23 +2,21 @@ package com.sinxn.spotify2yt.ytmibrary
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.sinxn.spotify2yt.ytmibrary.YTAuth
 import okhttp3.Headers
 import okhttp3.Response
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.text.NumberFormat
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.text.NumberFormat
-import java.time.LocalDateTime
 
 fun initializeHeaders(): JsonObject {
     val headers = JsonObject().apply {
         addProperty("user-agent",YTAuth.USER_AGENT)
         addProperty("accept", "*/*")
         addProperty("accept-encoding", "gzip, deflate")
-        addProperty("content-type", "application/json")
         addProperty("origin", YTAuth.YTM_DOMAIN)
     }
 

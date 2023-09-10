@@ -1,6 +1,5 @@
 package com.sinxn.spotify2yt.ytmibrary
 
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.sinxn.spotify2yt.ytmibrary.auth.isOAuth
@@ -58,6 +57,7 @@ class YTMusic(
                 inputDict = inputJson
                 isOAuthAuth = isOAuth(inputDict)
             }
+            headers = prepareHeaders(session, proxies, inputDict)
 
             if (!headers.has("x-goog-visitor-id")) {
                 headers.addProperty("X-Goog-Visitor-Id", getVisitorId { sendGetRequest(it) })
@@ -99,7 +99,7 @@ class YTMusic(
             val requestBuilder = Request.Builder().apply {
                 url(urlWithParams)
                 headers(headers.toHeaders())
-                if (cookies != null && cookies != JsonObject()) headers(cookies.toHeaders())
+                if (cookies != JsonObject()) headers(cookies.toHeaders())
                 if (proxies != null && proxies != JsonObject()) headers(proxies!!.toHeaders())
             }
 
@@ -120,7 +120,7 @@ class YTMusic(
         return urlBuilder.build().toString()
     }
 
-    private fun checkAuth() {
+    fun checkAuth() {
         if (auth == null) {
             throw Exception("Please provide authentication before using this function")
         }
@@ -138,17 +138,20 @@ class YTMusic(
             }
             val bodys = body.plus(context)
             val params = YTAuth.YTM_PARAMS
+            val requestBody = bodys.toString().toRequestBody(JSON_MEDIA_TYPE)
 
-            val requestBody = (Gson().toJson(bodys)).toRequestBody(JSON_MEDIA_TYPE)
 
-            val headers = headers.plus(cookies)
+            val headers = headers
+            val auth = headers.remove("Authorization")
             proxies?.let { headers.plus(it) }
+            headers.addProperty("Cookie", "CONSENT=YES+1")
             val request = Request.Builder().apply {
                 url(YTAuth.YTM_BASE_API + endpoint + params + additionalParams)
                 post(requestBody)
                 headers(headers.toHeaders())
+                addHeader("Authorization", auth.asString)
             }.build()
-            val response: Response = session.newCall(request).execute()
+            val response: Response = session.newBuilder().build().newCall(request).execute()
             if (response.code >= 400) {
                 val message = "Server returned HTTP ${response.code}: ${response.message}.\n"
                 throw Exception("$message")

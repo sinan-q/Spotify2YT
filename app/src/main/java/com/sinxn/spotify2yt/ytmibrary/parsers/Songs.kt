@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
 import com.sinxn.spotify2yt.ytmibrary.nav
 
-fun parseSongArtists(data: JsonObject, index: Int): JsonObject? {
+fun parseSongArtists(data: JsonObject, index: Int): JsonArray? {
     val flexItem = getFlexColumnItem(data, index)
 
     return if (flexItem == null) {
@@ -17,7 +17,7 @@ fun parseSongArtists(data: JsonObject, index: Int): JsonObject? {
     }
 }
 
-fun parseSongArtistsRuns(runs: List<JsonElement>): JsonObject {
+fun parseSongArtistsRuns(runs: List<JsonElement>): JsonArray {
     val artists = JsonArray()
     for (j in 0 until (runs.size / 2) + 1) {
         val artist = JsonObject().apply {
@@ -28,7 +28,7 @@ fun parseSongArtistsRuns(runs: List<JsonElement>): JsonObject {
         }
         artists.add(artist)
     }
-    return artists.asJsonObject
+    return artists
 }
 
 fun parseSongRuns(runs: JsonArray?): JsonObject {
