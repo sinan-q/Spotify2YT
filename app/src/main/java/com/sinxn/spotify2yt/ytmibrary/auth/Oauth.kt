@@ -5,6 +5,8 @@ import com.google.gson.JsonParser
 import com.sinxn.spotify2yt.ytmibrary.YTAuth
 import com.sinxn.spotify2yt.ytmibrary.initializeHeaders
 import com.sinxn.spotify2yt.ytmibrary.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -28,17 +30,18 @@ fun isCustomOAuth(headers: JsonObject): Boolean {
 class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonObject? = null) {
 
 
-    private fun sendRequest(url: String, data: JsonObject): Response {
-        data.addProperty("client_id", YTAuth.OAUTH_CLIENT_ID)
-        val jsonMediaType = "application/json; charset=utf-8".toMediaType()
-        val requestBody = data.toString().toRequestBody(jsonMediaType)
-        val request = Request.Builder()
-            .url(url)
-            .post(requestBody)
-            .header("User-Agent", YTAuth.OAUTH_USER_AGENT)
-            .build()
-
-        return session.newCall(request).execute()
+    private suspend fun sendRequest(url: String, data: JsonObject): Response {
+        return withContext(Dispatchers.IO) {
+            data.addProperty("client_id", YTAuth.OAUTH_CLIENT_ID)
+            val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+            val requestBody = data.toString().toRequestBody(jsonMediaType)
+            val request = Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .header("User-Agent", YTAuth.OAUTH_USER_AGENT)
+                .build()
+            session.newCall(request).execute()
+        }
     }
 
     private fun parseToken(response: Response, refreshToken: String? = null): JsonObject {
@@ -77,13 +80,13 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         }
     }
 
-    private fun getCode(): JsonObject {
+    private suspend fun getCode(): JsonObject {
         val codeResponse =
             sendRequest(YTAuth.OAUTH_CODE_URL, JsonObject().apply { addProperty("scope", YTAuth.OAUTH_SCOPE) })
         return JsonParser().parse(codeResponse.body.string())?.asJsonObject ?: JsonObject()
     }
 
-    private fun getTokenFromCode(deviceCode: String): JsonObject {
+    private suspend fun getTokenFromCode(deviceCode: String): JsonObject {
         val response = sendRequest(
             YTAuth.OAUTH_TOKEN_URL,
             JsonObject().apply {
@@ -95,7 +98,7 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         return parseToken(response)
     }
 
-    private fun refreshToken(refreshToken: String): JsonObject {
+    private suspend fun refreshToken(refreshToken: String): JsonObject {
         val response = sendRequest(
             YTAuth.OAUTH_TOKEN_URL,
             JsonObject().apply {
@@ -107,7 +110,7 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         return parseToken(response,refreshToken)
     }
 
-    fun setup(filepath: String? = null, openBrowser: Boolean = false): JsonObject {
+    suspend fun setup(filepath: String? = null, openBrowser: Boolean = false): JsonObject {
         val code = getCode()
         val url = "${code["verification_url"]}?user_code=${code["user_code"]}"
 
@@ -120,7 +123,7 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
     }
 
 
-    fun loadHeaders(token: JsonObject, filepath: String): JsonObject {
+    suspend fun loadHeaders(token: JsonObject, filepath: String): JsonObject {
         val headers = initializeHeaders()
         if (System.currentTimeMillis() / 1000 > token["expires_at"].asLong - 3600) {
             token.update(refreshToken(token["refresh_token"].asString))

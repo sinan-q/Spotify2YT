@@ -43,7 +43,7 @@ class YTMusic(
     }
 
     private val cookies = JsonObject().apply { addProperty("CONSENT", "YES+1") }
-    private var headers = prepareHeaders(session, proxies, inputDict)
+    private var headers = JsonObject()
 
     private val context: JsonObject = initializeContext()
 

@@ -1,7 +1,6 @@
 package com.sinxn.spotify2yt.ytmibrary.auth
 
 import com.google.gson.Gson
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.sinxn.spotify2yt.ytmibrary.initializeHeaders
 import com.sinxn.spotify2yt.ytmibrary.update
@@ -19,7 +18,7 @@ fun loadHeadersFile(auth: String): JsonObject {
     return inputJson
 }
 
-fun prepareHeaders(
+suspend fun prepareHeaders(
     session: okhttp3.OkHttpClient,
     proxies: JsonObject? = null,
     inputMap: JsonObject? = null
