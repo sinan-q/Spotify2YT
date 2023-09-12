@@ -42,8 +42,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- Sinan Muhammed - [@your-twitter-handle](https://twitter.com/si_n_an_q)
-- Project Link: [https://github.com/your-username/your-repository](https://github.com/sinan-q/Spotify2YT)
+- Sinan Muhammed - [@si_n_an_q](https://twitter.com/si_n_an_q)
+- Project Link: [https://github.com/sinan-q/Spotify2YT](https://github.com/sinan-q/Spotify2YT)
 
 Feel free to reach out with any questions, suggestions, or issues related to the app.
 
