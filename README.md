@@ -1,8 +1,8 @@
-# Spotify to YouTube Music Playlist Converter
+# Youtify - Spotify to YouTube Music Playlist Converter
 
-![GitHub stars](https://img.shields.io/github/stars/your-username/your-repository)
-![GitHub forks](https://img.shields.io/github/forks/your-username/your-repository)
-![GitHub license](https://img.shields.io/github/license/your-username/your-repository)
+![GitHub stars](https://img.shields.io/github/stars/sinan-q/Spotify2YT)
+![GitHub forks](https://img.shields.io/github/forks/sinan-q/Spotify2YT)
+![GitHub license](https://img.shields.io/github/license/sinan-q/Spotify2YT)
 
 Convert your Spotify playlists into YouTube Music playlists and seamlessly enjoy your music on both platforms. This Android app, built using Kotlin and Jetpack Compose, offers a range of features to enhance your music streaming experience.
 
@@ -17,15 +17,15 @@ Convert your Spotify playlists into YouTube Music playlists and seamlessly enjoy
 
 ## Screenshots
 
-Include screenshots or GIFs of your app here to give users a visual preview of your app's interface and features.
+
 
 ## Installation
 
-Provide step-by-step instructions on how to install and use your app. You can also include a link to the APK file if applicable.
+
 
 ## Usage
 
-Explain how users can use the app effectively. Include any configuration settings or setup required.
+
 
 ## Contributing
 
@@ -42,9 +42,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- Your Name - [@your-twitter-handle](https://twitter.com/your-twitter-handle)
-- Email - your.email@example.com
-- Project Link: [https://github.com/your-username/your-repository](https://github.com/your-username/your-repository)
+- Sinan Muhammed - [@your-twitter-handle](https://twitter.com/si_n_an_q)
+- Project Link: [https://github.com/your-username/your-repository](https://github.com/sinan-q/Spotify2YT)
 
 Feel free to reach out with any questions, suggestions, or issues related to the app.
 
@@ -58,12 +57,11 @@ Keep track of version history and changes in this section.
 
 ## Support
 
-If you encounter any problems or need assistance, please create an [issue](https://github.com/your-username/your-repository/issues) on GitHub.
+If you encounter any problems or need assistance, please create an [issue](https://github.com/sinan/Spotify2YT/issues) on GitHub.
 
 ## Credits
 
-Give credit to the individuals or organizations that have contributed to the development of this app.
 
 ---
 
-Thank you for using the Spotify to YouTube Music Playlist Converter app! We hope you enjoy it.
+Thank you for using the Youtify app! We hope you enjoy it.
