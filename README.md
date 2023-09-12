@@ -20,8 +20,11 @@ Convert your Spotify playlists into YouTube Music playlists and seamlessly enjoy
 
 
 ## Installation
-
-
+<p float="left">
+ <img src="/screenshots/Screenshot_20230912-215223_Spotify2YT.png" width="170" />
+ <img src="/screenshots/Screenshot_20230912-215233_Spotify2YT.png" width="170" />
+ <img src="/screenshots/Screenshot_20230912-215238_Spotify2YT.png" width="170" />
+</p>
 
 ## Usage
 
