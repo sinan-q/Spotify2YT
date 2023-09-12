@@ -57,7 +57,7 @@ Keep track of version history and changes in this section.
 
 ## Support
 
-If you encounter any problems or need assistance, please create an [issue](https://github.com/sinan/Spotify2YT/issues) on GitHub.
+If you encounter any problems or need assistance, please create an [issue](https://github.com/sinan-q/Spotify2YT/issues) on GitHub.
 
 ## Credits
 
