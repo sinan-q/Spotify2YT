@@ -6,7 +6,7 @@
     <string name="delete_selected_playlist">Delete selected Playlist</string>
     <string name="play_selected_song">Play selected Song on Youtube Music</string>
     <string name="more_selected_song_actions">more selected song actions</string>
-    <string name="add_playlist">Add New Spotify Playlist</string>
+    <string name="add_playlist">Add Playlist</string>
     <string name="enter_playlist_link">Add Playlist</string>
     <string name="paste_spotify_link">Paste the Spotify Link</string>
     <string name="upload_playlist_title">Title</string>
