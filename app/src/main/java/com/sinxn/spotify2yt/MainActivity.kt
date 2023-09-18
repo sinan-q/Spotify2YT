@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
@@ -25,7 +26,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.sinxn.spotify2yt.navigation.Navigation
@@ -41,8 +43,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val viewModel: HomeViewModel = hiltViewModel()
-            val collapsedTextSize = 16
-            val expandedTextSize = 28
+            val collapsedTextSize = 50
+            val expandedTextSize = 100
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
                 rememberTopAppBarState()
             )
@@ -73,10 +75,7 @@ class MainActivity : ComponentActivity() {
 
                             },
                             title = {
-                                Text(
-                                    text = "Youtify",
-                                    fontSize = (collapsedTextSize + (expandedTextSize - collapsedTextSize) * (1 - scrollBehavior.state.collapsedFraction)).sp
-                                )
+                                Icon(painter = painterResource(id = R.drawable.ic_app_name_colored),contentDescription = null, modifier = Modifier.size(100.dp))
                             },
                         )
                         Navigation(navController = navController )
