@@ -43,6 +43,7 @@ import com.sinxn.youtify.R
 import com.sinxn.youtify.domain.model.Playlists
 import com.sinxn.youtify.tools.Routes
 import com.sinxn.youtify.ui.home.components.AddPlaylistDialog
+import com.sinxn.youtify.ui.setup.MyButton
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,21 +57,34 @@ fun HomeScreen(
     val uiState = viewModel.uiState
     var playlistDialogState by remember { mutableStateOf(false) }
     Scaffold(floatingActionButton = {
-        FloatingActionButton(onClick = { playlistDialogState = true}) {
-            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_playlist))
+        FloatingActionButton(modifier = Modifier.padding(20.dp), onClick = { playlistDialogState = true}) {
+            Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (uiState.playlists.isEmpty()) Text(text = stringResource(R.string.add_playlist))
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_playlist))
+            }
+
         }
     }) {padding->
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)) {
-            items(uiState.playlists) {playlist->
-                PlaylistCard(playlist, onOptionClick = {
-                    viewModel.onEvent(it)
-                }, onClick = {
-                    viewModel.onEvent(PlaylistEvent.OnSelect(playlist))
-                    navController.navigate(Routes.PLAYLIST_SCREEN)
-                } )
+        if (uiState.playlists.isEmpty()) {
+            Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "No Playlists")
+                MyButton(onClick = { /*TODO*/ }, text = "Browse Top Songs")
+            }
+        }
+        else {  
+            LazyColumn(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                items(uiState.playlists) { playlist ->
+                    PlaylistCard(playlist, onOptionClick = {
+                        viewModel.onEvent(it)
+                    }, onClick = {
+                        viewModel.onEvent(PlaylistEvent.OnSelect(playlist))
+                        navController.navigate(Routes.PLAYLIST_SCREEN)
+                    })
+                }
             }
         }
     }

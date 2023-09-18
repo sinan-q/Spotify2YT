@@ -76,6 +76,7 @@ class SetupViewModel @Inject constructor(
                     require(event.clientSecret!="")
                     sharedPref.spotifyClientId = event.clientId
                     sharedPref.spotifyClientSecret = event.clientSecret
+                    uiState.completed.add(SetupStatus.SPOTIFY)
                 }
                 catch (error: Exception) {
                     uiState = uiState.copy(
