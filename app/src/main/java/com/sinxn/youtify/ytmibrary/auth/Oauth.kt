@@ -11,7 +11,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -27,10 +26,9 @@ fun isCustomOAuth(headers: JsonObject): Boolean {
 }
 
 
-class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonObject? = null) {
+class YTMusicOAuth(private val session: OkHttpClient = OkHttpClient.Builder().build(), private val proxies:JsonObject? = null){
 
-
-    private suspend fun sendRequest(url: String, data: JsonObject): Response {
+    private suspend fun sendRequest(url: String, data: JsonObject): JsonObject {
         return withContext(Dispatchers.IO) {
             data.addProperty("client_id", YTAuth.OAUTH_CLIENT_ID)
             val jsonMediaType = "application/json; charset=utf-8".toMediaType()
@@ -40,12 +38,16 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
                 .post(requestBody)
                 .header("User-Agent", YTAuth.OAUTH_USER_AGENT)
                 .build()
-            session.newCall(request).execute()
+            val response = session.newCall(request).execute()
+            if (response.code >= 400) {
+                val message = "Server returned HTTP ${response.code}: ${response.message}.\n"
+                throw Exception(message)
+            }
+            JsonParser().parse(response.body.string()).asJsonObject
         }
     }
 
-    private fun parseToken(response: Response, refreshToken: String? = null): JsonObject {
-        val tokenObj = JsonParser().parse(response.body.string()).asJsonObject
+    private fun parseToken(tokenObj: JsonObject, refreshToken: String? = null): JsonObject {
         if (!tokenObj.has("refreshToken") && refreshToken!=null) tokenObj.addProperty("refreshToken",refreshToken)
         tokenObj.addProperty("expires_at", (System.currentTimeMillis() / 1000) + getExpiresIn(tokenObj))
         return tokenObj
@@ -80,13 +82,18 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         }
     }
 
-    private suspend fun getCode(): JsonObject {
-        val codeResponse =
-            sendRequest(YTAuth.OAUTH_CODE_URL, JsonObject().apply { addProperty("scope", YTAuth.OAUTH_SCOPE) })
-        return JsonParser().parse(codeResponse.body.string())?.asJsonObject ?: JsonObject()
+    suspend fun getCode(): YoutubeApiGetCodeResponse {
+        return try {
+            val codeResponse =
+                sendRequest(YTAuth.OAUTH_CODE_URL, JsonObject().apply { addProperty("scope", YTAuth.OAUTH_SCOPE) })
+            YoutubeApiGetCodeResponse(device_code = codeResponse["device_code"].asString, user_code = codeResponse["user_code"].asString, verification_url =  codeResponse["verification_url"].asString, isSuccess = true )
+        }catch (error: Exception) {
+            YoutubeApiGetCodeResponse(isSuccess = false, error = "${ error.message }")
+        }
+
     }
 
-    private suspend fun getTokenFromCode(deviceCode: String): JsonObject {
+    suspend fun getTokenFromCode(deviceCode: String): JsonObject {
         val response = sendRequest(
             YTAuth.OAUTH_TOKEN_URL,
             JsonObject().apply {
@@ -110,18 +117,6 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         return parseToken(response,refreshToken)
     }
 
-    suspend fun setup(filepath: String? = null, openBrowser: Boolean = false): JsonObject {
-        val code = getCode()
-        val url = "${code["verification_url"]}?user_code=${code["user_code"]}"
-
-        TODO()
-        val token = getTokenFromCode(code["device_code"].asString)
-        if (filepath != null) {
-            saveToken(token, filepath)
-        }
-        return token
-    }
-
 
     suspend fun loadHeaders(token: JsonObject, filepath: String): JsonObject {
         val headers = initializeHeaders()
@@ -135,3 +130,12 @@ class YTMusicOAuth(private val session: OkHttpClient, private val proxies:JsonOb
         return headers
     }
 }
+
+data class YoutubeApiGetCodeResponse(
+    val client_id: String = YTAuth.OAUTH_CLIENT_ID,
+    val device_code: String? = null,
+    val user_code: String? =null,
+    val verification_url: String? = null,
+    val isSuccess: Boolean,
+    val error: String? = null,
+)

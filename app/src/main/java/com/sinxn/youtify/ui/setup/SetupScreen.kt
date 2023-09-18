@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +59,7 @@ fun SetupScreen(
     var openUrl: String? by remember { mutableStateOf(null) }
     val uiState = viewModel.uiState
     var buttonExpandState by remember {
-        mutableIntStateOf(0)
+        mutableStateOf(SetupStatus.NONE)
     }
     Scaffold(snackbarHost =  { SnackbarHost(
         hostState = snackBarHostState
@@ -70,15 +69,18 @@ fun SetupScreen(
             .padding(padding)
             .fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(Modifier.fillMaxWidth(0.8f)) {
+                if (!uiState.completed.contains(SetupStatus.YOUTUBE))
                 SetupButton(number = 1, text = "Setup Youtube Music", onToggle = {
-                    buttonExpandState = if (it) 1 else 0
+                    buttonExpandState = if (it) SetupStatus.YOUTUBE else SetupStatus.NONE
                 })
 
-                if (buttonExpandState==1) {
+                if (buttonExpandState==SetupStatus.YOUTUBE) {
                     SetupYoutube(uiState.ytmUrl, onOpenUrl = {openUrl = it}, onFinish= { viewModel.onEvent(SetupYoutubeEvent.GetToken) })
                 }
-                SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) 2 else 0} )
-                if (buttonExpandState==2) {
+
+                if (!uiState.completed.contains(SetupStatus.SPOTIFY))
+                SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) SetupStatus.SPOTIFY else SetupStatus.NONE} )
+                if (buttonExpandState==SetupStatus.SPOTIFY) {
                     SetupSpotify(onOpenUrl = {openUrl = it}) { spotifyClientId, spotifyClientSecret->
                         viewModel.onEvent(SetupSpotifyEvent.OnCred(spotifyClientId,spotifyClientSecret))}
                 }
@@ -87,7 +89,7 @@ fun SetupScreen(
         }
     }
     LaunchedEffect(true) {
-        viewModel.onEvent(SetupYoutubeEvent.GetCode)
+        viewModel.onEvent(SetupYoutubeEvent.Init)
     }
     LaunchedEffect(openUrl) {
         if (openUrl!=null) {

@@ -154,7 +154,7 @@ class YTMusic(
             val response: Response = session.newBuilder().build().newCall(request).execute()
             if (response.code >= 400) {
                 val message = "Server returned HTTP ${response.code}: ${response.message}.\n"
-                throw Exception("$message")
+                throw Exception(message)
             }
 
             return@withContext JsonParser().parse(response.body.string()).asJsonObject

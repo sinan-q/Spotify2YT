@@ -4,7 +4,7 @@ sealed class SetupEvent {
     data class OnError(val error: String?) : SetupEvent()
 }
 sealed class SetupYoutubeEvent {
-    object GetCode: SetupEvent()
+    object Init: SetupEvent()
     object GetToken: SetupEvent()
 }
 sealed class SetupSpotifyEvent {

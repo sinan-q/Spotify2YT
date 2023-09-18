@@ -3,14 +3,13 @@ package com.sinxn.youtify.ui.setup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sinxn.youtify.api.ResposeGetCode
-import com.sinxn.youtify.api.SendCodeRequest
-import com.sinxn.youtify.api.TokenRequest
-import com.sinxn.youtify.api.YTMGetCode
-import com.sinxn.youtify.api.YTMGetToken
 import com.sinxn.youtify.repository.SharedPref
+import com.sinxn.youtify.ytmibrary.YTMusic
+import com.sinxn.youtify.ytmibrary.auth.YTMusicOAuth
+import com.sinxn.youtify.ytmibrary.auth.YoutubeApiGetCodeResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -19,8 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
-    private val ytmGetCode: YTMGetCode,
-    private val ytmGetToken: YTMGetToken,
     private val sharedPref: SharedPref,
     private val storage: File
 ): ViewModel()
@@ -29,15 +26,21 @@ class SetupViewModel @Inject constructor(
         private set
     fun onEvent(event: SetupEvent) {
         when(event) {
-            is SetupYoutubeEvent.GetCode -> {
+            is SetupYoutubeEvent.Init -> {
                 viewModelScope.launch {
                     try {
-                        val res = ytmGetCode.getCode(SendCodeRequest())
-                        if (res.isSuccessful) {
-                            res.body()?.let {
+                        val file = File(storage,"auth")
+                        if (sharedPref.spotifyClientId!=null && sharedPref.spotifyClientSecret!=null)
+                            uiState.completed.add(SetupStatus.SPOTIFY)
+                        if (file.exists()) uiState.completed.add(SetupStatus.YOUTUBE)
+                        else {
+                            val res = YTMusicOAuth().getCode()
+                            if (res.isSuccess) {
                                 uiState = uiState.copy(
-                                    code = it,
-                                    ytmUrl = "${it.verification_url}?user_code=${it.user_code}")
+                                    code = res,
+                                    ytmUrl = "${res.verification_url}?user_code=${res.user_code}"
+                                )
+
                             }
                         }
                     }catch (error: HttpException) {
@@ -51,13 +54,16 @@ class SetupViewModel @Inject constructor(
             is SetupYoutubeEvent.GetToken -> {
                 viewModelScope.launch {
                     try {
-                        val res = ytmGetToken.getCode(tokenRequest = TokenRequest(code=uiState.code.device_code?: ""))
-                        if (res.isSuccessful) {
-                            val data = res.body().toString()
-                            val file = File(storage,"auth")
-                            file.writeText(data)
-                        }
-                    }catch (error: HttpException) {
+                        require(uiState.code?.device_code!=null)
+                        val res = YTMusicOAuth().getTokenFromCode(uiState.code?.device_code!!)
+
+                        val data = res.toString()
+                        val file = File(storage,"auth")
+                        file.writeText(data)
+                        uiState.completed.add(SetupStatus.YOUTUBE)
+
+
+                    }catch (error: Exception) {
                         uiState = uiState.copy(
                             error = error.message
                         )
@@ -90,7 +96,12 @@ class SetupViewModel @Inject constructor(
 
 data class SetupUiState (
     var ytmUrl:String = "",
-    var code: ResposeGetCode = ResposeGetCode(),
+    var code: YoutubeApiGetCodeResponse?=null,
+    val ytmApi: YTMusic = YTMusic(),
+    val completed: SnapshotStateList<SetupStatus> = SnapshotStateList(),
 
     val error: String? = null,
 )
+enum class SetupStatus {
+    YOUTUBE,SPOTIFY,NONE
+}
