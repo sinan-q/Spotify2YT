@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sinxn.spotify2yt"
+    namespace = "com.sinxn.youtify"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sinxn.spotify2yt"
+        applicationId = "com.sinxn.youtify"
         minSdk = 29
         targetSdk = 34
         versionCode = 1
