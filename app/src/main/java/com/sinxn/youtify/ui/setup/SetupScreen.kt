@@ -1,5 +1,7 @@
 package com.sinxn.youtify.ui.setup
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -7,7 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +23,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,37 +46,62 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.sinxn.youtify.tools.Constants
 import com.sinxn.youtify.ui.theme.linkBackground
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupScreen(
     navController: NavController,
     viewModel: SetupViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val snackBarHostState = SnackbarHostState()
+    var openUrl: String? by remember { mutableStateOf(null) }
+    val uiState = viewModel.uiState
     var buttonExpandState by remember {
         mutableIntStateOf(0)
     }
-    Box(modifier = Modifier
-        .fillMaxHeight()
-        .fillMaxWidth(1f), contentAlignment = Alignment.Center) {
-        Column(Modifier.fillMaxWidth(0.8f)) {
-            SetupButton(number = 1, text = "Setup Youtube Music", onToggle = {
-                buttonExpandState = if (it) 1 else 0
-            })
+    Scaffold(snackbarHost =  { SnackbarHost(
+        hostState = snackBarHostState
+    )
+    },) {padding->
+        Box(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(Modifier.fillMaxWidth(0.8f)) {
+                SetupButton(number = 1, text = "Setup Youtube Music", onToggle = {
+                    buttonExpandState = if (it) 1 else 0
+                })
 
-            if (buttonExpandState==1) {
-                SetupYoutube(viewModel.ytmUrl, onFinish= { viewModel.getTokenFromCode() })
-            }
-            SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) 2 else 0} )
-            if (buttonExpandState==2) {
-                SetupSpotify { spotifyClientId, spotifyClientSecret->
-                    viewModel.setSpotify(spotifyClientId,spotifyClientSecret)}
-            }
+                if (buttonExpandState==1) {
+                    SetupYoutube(uiState.ytmUrl, onOpenUrl = {openUrl = it}, onFinish= { viewModel.onEvent(SetupYoutubeEvent.GetToken) })
+                }
+                SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) 2 else 0} )
+                if (buttonExpandState==2) {
+                    SetupSpotify(onOpenUrl = {openUrl = it}) { spotifyClientId, spotifyClientSecret->
+                        viewModel.onEvent(SetupSpotifyEvent.OnCred(spotifyClientId,spotifyClientSecret))}
+                }
 
+            }
         }
     }
     LaunchedEffect(true) {
-        viewModel.ytmGetCode()
+        viewModel.onEvent(SetupYoutubeEvent.GetCode)
+    }
+    LaunchedEffect(openUrl) {
+        if (openUrl!=null) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(openUrl))
+            context.startActivity(intent)
+            openUrl = null
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        if (uiState.error!=null) {
+            snackBarHostState.showSnackbar(uiState.error)
+            viewModel.onEvent(SetupEvent.OnError(null))
+        }
     }
 }
 
@@ -99,7 +130,7 @@ fun SetupButton(
 }
 
 @Composable
-private fun SetupYoutube(code: String, onFinish: ()->Unit) {
+private fun SetupYoutube(code: String,onOpenUrl: (String)-> Unit, onFinish: ()->Unit) {
     var code by remember {
         mutableStateOf(code)
     }
@@ -113,7 +144,7 @@ private fun SetupYoutube(code: String, onFinish: ()->Unit) {
             .padding(vertical = 5.dp)
             .background(linkBackground)
             .padding(10.dp), readOnly = true, value = code, textStyle = TextStyle(fontStyle = FontStyle.Italic, background = linkBackground, fontSize = 14.sp), onValueChange = { code = it })
-        RightSideButtons(onClick = { /*TODO*/ }, text = "Open Link", icon = Icons.Filled.KeyboardArrowRight)
+        RightSideButtons(onClick = { onOpenUrl(code) }, text = "Open Link", icon = Icons.Filled.KeyboardArrowRight)
 
         StepScreen(stepNumber = 2,"After Authorization Click Finish")
         RightSideButtons(onClick = { onFinish() }, text = "Finish")
@@ -123,7 +154,7 @@ private fun SetupYoutube(code: String, onFinish: ()->Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SetupSpotify(onFinish: (String, String) -> Unit) {
+private fun SetupSpotify(onOpenUrl: (String)-> Unit, onFinish: (String, String) -> Unit) {
     var spotifyClientId by remember {
         mutableStateOf("")
     }
@@ -138,8 +169,8 @@ private fun SetupSpotify(onFinish: (String, String) -> Unit) {
         BasicTextField(modifier = Modifier
             .padding(vertical = 5.dp)
             .background(linkBackground)
-            .padding(10.dp), readOnly = true, value = "https://developer.spotify.com/dashboard/create", textStyle = TextStyle(fontStyle = FontStyle.Italic, background = linkBackground, fontSize = 14.sp), onValueChange = {  })
-        RightSideButtons(onClick = { /*TODO*/ }, text = "Open Link", icon = Icons.Filled.KeyboardArrowRight)
+            .padding(10.dp), readOnly = true, value = Constants.SPOTIFY_DEVEPOER_URL, textStyle = TextStyle(fontStyle = FontStyle.Italic, background = linkBackground, fontSize = 14.sp), onValueChange = {  })
+        RightSideButtons(onClick = { onOpenUrl(Constants.SPOTIFY_DEVEPOER_URL) }, text = "Open Link", icon = Icons.Filled.KeyboardArrowRight)
         StepScreen(stepNumber = 2, description = "Paste Client ID and Client Secret from your created app in Spotify Developer\n\nClick Finish after Entering")
 
         OutlinedTextField(value = spotifyClientId, label = {

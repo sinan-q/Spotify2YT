@@ -1,6 +1,5 @@
 package com.sinxn.youtify.ui.setup
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,45 +25,72 @@ class SetupViewModel @Inject constructor(
     private val storage: File
 ): ViewModel()
 {
-    var ytmUrl by mutableStateOf("")
-    var code: ResposeGetCode = ResposeGetCode()
-
-    fun ytmGetCode() {
-        viewModelScope.launch {
-            try {
-                val res = ytmGetCode.getCode(SendCodeRequest())
-                if (res.isSuccessful) {
-                    code = res.body()!!
-                    ytmUrl = "${code.verification_url}?user_code=${code.user_code}"
-
+    var uiState by mutableStateOf(SetupUiState())
+        private set
+    fun onEvent(event: SetupEvent) {
+        when(event) {
+            is SetupYoutubeEvent.GetCode -> {
+                viewModelScope.launch {
+                    try {
+                        val res = ytmGetCode.getCode(SendCodeRequest())
+                        if (res.isSuccessful) {
+                            res.body()?.let {
+                                uiState = uiState.copy(
+                                    code = it,
+                                    ytmUrl = "${it.verification_url}?user_code=${it.user_code}")
+                            }
+                        }
+                    }catch (error: HttpException) {
+                        uiState = uiState.copy(
+                            error = error.message
+                        )
+                    }
                 }
-            }catch (e: HttpException) {
-                Log.d("TAG", "setupSpotify: $e")
+            }
 
+            is SetupYoutubeEvent.GetToken -> {
+                viewModelScope.launch {
+                    try {
+                        val res = ytmGetToken.getCode(tokenRequest = TokenRequest(code=uiState.code.device_code?: ""))
+                        if (res.isSuccessful) {
+                            val data = res.body().toString()
+                            val file = File(storage,"auth")
+                            file.writeText(data)
+                        }
+                    }catch (error: HttpException) {
+                        uiState = uiState.copy(
+                            error = error.message
+                        )
+                    }
+                }
+            }
+            is SetupSpotifyEvent.OnCred -> {
+                try {
+                    require(event.clientId!="")
+                    require(event.clientSecret!="")
+                    sharedPref.spotifyClientId = event.clientId
+                    sharedPref.spotifyClientSecret = event.clientSecret
+                }
+                catch (error: Exception) {
+                    uiState = uiState.copy(
+                        error = error.message
+                    )
+                }
+            }
+
+            is SetupEvent.OnError -> {
+                uiState = uiState.copy(
+                    error = null
+                )
             }
         }
     }
 
-    fun getTokenFromCode() {
-        viewModelScope.launch {
-            try {
-                val res = ytmGetToken.getCode(tokenRequest = TokenRequest(code=code.device_code?: ""))
-                if (res.isSuccessful) {
-                    val data = res.body().toString()
-                    val file = File(storage,"auth")
-                    file.writeText(data)
-
-
-                }
-            }catch (e: HttpException) {}
-        }
-    }
-
-    fun setSpotify(spotifyClientId: String, spotifyClientSecret: String) {
-        if (spotifyClientId!="" && spotifyClientSecret!="") {
-            sharedPref.spotifyClientId = spotifyClientId
-            sharedPref.spotifyClientSecret = spotifyClientSecret
-        }
-    }
-
 }
+
+data class SetupUiState (
+    var ytmUrl:String = "",
+    var code: ResposeGetCode = ResposeGetCode(),
+
+    val error: String? = null,
+)
