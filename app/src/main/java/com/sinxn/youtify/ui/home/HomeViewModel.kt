@@ -64,7 +64,7 @@ class HomeViewModel @Inject constructor(
             is PlaylistEvent.OnConvert -> {
                 viewModelScope.launch {
                     if (spotifyAppApi==null) init()
-                    val playlistId = event.playlistUrl.trim('/').split('/').last()
+                    val playlistId = event.playlistUrl.trim('/').split('/').last().split('?').first()
                     val res = spotifyAppApi?.playlists?.getPlaylist(playlistId)
                     res?.let {
                         uiState = uiState.copy(
