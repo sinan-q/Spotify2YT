@@ -70,8 +70,10 @@ fun PlayListScreen(
                 .fillMaxHeight(0.25f)) {
             Text(text = uiState.playlist?.name?: stringResource(R.string.playlist_name_not_found),fontWeight = FontWeight.Bold, fontSize = 24.sp ,modifier = Modifier.align(Alignment.Center))
             Row(modifier = Modifier
-                .fillMaxWidth().padding(15.dp)
-                .align(Alignment.BottomEnd), horizontalArrangement = Arrangement.End) {
+                .fillMaxWidth()
+                .padding(15.dp)
+                .align(Alignment.BottomEnd), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
+                Text(text = "${uiState.playlistSongs.size}/${uiState.playlist?.count?:0}")
                 IconButton(onClick = {  }) {
                     Icon(painter = painterResource(id = R.drawable.playlist_save_ic), contentDescription = stringResource(R.string.save_playlist))
                 }
