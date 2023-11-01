@@ -2,6 +2,7 @@ package com.sinxn.youtify.ui.setup
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,19 +71,24 @@ fun SetupScreen(
             .fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(Modifier.fillMaxWidth(0.8f)) {
                 if (!uiState.completed.contains(SetupStatus.YOUTUBE))
-                SetupButton(number = 1, text = "Setup Youtube Music", onToggle = {
-                    buttonExpandState = if (it) SetupStatus.YOUTUBE else SetupStatus.NONE
-                })
-
-                if (buttonExpandState==SetupStatus.YOUTUBE) {
-                    SetupYoutube(uiState.ytmUrl, onOpenUrl = {openUrl = it}, onFinish= { viewModel.onEvent(SetupYoutubeEvent.GetToken) })
+                    SetupButton(number = 1, text = "Setup Youtube Music", onToggle = {
+                        buttonExpandState = if (it) SetupStatus.YOUTUBE else SetupStatus.NONE
+                    })
+                AnimatedContent(targetState = buttonExpandState==SetupStatus.YOUTUBE, label = "") {
+                    if (it) {
+                        SetupYoutube(uiState.ytmUrl, onOpenUrl = {openUrl = it}, onFinish= { viewModel.onEvent(SetupYoutubeEvent.GetToken) })
+                    }
                 }
 
+
                 if (!uiState.completed.contains(SetupStatus.SPOTIFY))
-                SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) SetupStatus.SPOTIFY else SetupStatus.NONE} )
-                if (buttonExpandState==SetupStatus.SPOTIFY) {
-                    SetupSpotify(onOpenUrl = {openUrl = it}) { spotifyClientId, spotifyClientSecret->
-                        viewModel.onEvent(SetupSpotifyEvent.OnCred(spotifyClientId,spotifyClientSecret))}
+                    SetupButton(number = 2, text = "Setup Spotify", onToggle ={buttonExpandState = if (it) SetupStatus.SPOTIFY else SetupStatus.NONE} )
+                AnimatedContent(buttonExpandState==SetupStatus.SPOTIFY, label = "") { spotify ->
+                    if (spotify) {
+                        SetupSpotify(onOpenUrl = {openUrl = it}) { spotifyClientId, spotifyClientSecret->
+                            viewModel.onEvent(SetupSpotifyEvent.OnCred(spotifyClientId,spotifyClientSecret))
+                        }
+                    }
                 }
 
             }
