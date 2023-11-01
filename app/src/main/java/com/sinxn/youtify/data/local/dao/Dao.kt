@@ -21,7 +21,7 @@ interface Dao {
     suspend fun addPlaylist(playlist: Playlists): Long
 
     @Insert
-    suspend fun addTracks(tracks: Tracks): Long
+    fun addTracks(tracks: Tracks): Long
 
     @Transaction
     suspend fun addPlaylistWithTracks(playlist: Playlists, tracks: List<Tracks>) {
