@@ -92,7 +92,7 @@ open class SearchMixin(private val yTMusic: YTMusic) {
         val resultsArray = nav(results, YTAuth.SECTION_LIST)?.asJsonArray
         // Check for no results
         if (resultsArray != null) {
-            if ((resultsArray.size() == 1) && TODO()) {
+            if ((resultsArray.size() == 1 && resultsArray.first().asJsonObject.has("itemSectionRenderer")) ) {
                 return searchResults
             }
         }
