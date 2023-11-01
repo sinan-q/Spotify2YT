@@ -43,15 +43,16 @@ fun getBestFitSongId(ytmResults: JsonArray, spoti: Tracks): String? {
     for (ytm in ytmResults) { ytm as JsonObject
         val resultType = if (ytm.has("resultType")) ytm["resultType"].asString else ""
         val title = if (ytm.has("title")) ytm["title"].asString else ""
-        val videoId = if (ytm.has("videoId")) ytm["videoId"].asString else continue
-
-        val duration = if (ytm.has("duration")) ytm["duration"].asString else ""
-        val artists = if (ytm.has("artists")) ytm.getAsJsonArray("artists")
-            ?.joinToString(" ") { it.asJsonObject.get("name").asString } else ""
-
         if (resultType !in listOf("song", "video") || title.isNullOrEmpty()) {
             continue
         }
+        val videoId = if (ytm.has("videoId") && !ytm["videoId"].isJsonNull) ytm["videoId"].asString else continue
+
+        val duration = if (ytm.has("duration") && !ytm["duration"].isJsonNull) ytm["duration"].asString else null
+        val artists = if (ytm.has("artists")) ytm.getAsJsonArray("artists")
+            ?.joinToString(" ") { it.asJsonObject.get("name").asString } else ""
+
+
         if (videoId.isNullOrEmpty()) continue
 
         val durationMatchScore: Float? = if (duration != null) {
