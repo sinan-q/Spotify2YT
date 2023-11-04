@@ -72,17 +72,38 @@ class HomeViewModel @Inject constructor(
                 viewModelScope.launch {
                     if (spotifyAppApi==null) init()
                     val playlistId = event.playlistUrl.trim('/').split('/').last().split('?').first()
-                    val res = spotifyAppApi?.playlists?.getPlaylist(playlistId)
-                    res?.let {
+                    val result = spotifyAppApi?.playlists?.getPlaylist(playlistId)
+                    result?.let {res ->
                         uiState = uiState.copy(
                             playlist = Playlists(res.name, playlistId, null, res.owner, res.description, res.followers.total, res.primaryColor, res.images[0].url, res.tracks.total, false, System.currentTimeMillis())
                         )
+
                         res.tracks.items.forEach { playlistTrack ->
                             playlistTrack.track?.asTrack?.let {
                                 val track = getTrack(it)
                                 uiState.playlistSongs.add(track)
                                 getYTSong(track)
                             }
+                        }
+                        if (res.tracks.total>100) {
+                            for (i in 100 until res.tracks.total step 100) {
+
+                                val res1 = spotifyAppApi?.playlists?.getPlaylistTracks(
+                                    playlistId,
+                                    offset = i,
+                                    limit = 100
+                                )
+                                res1?.let {
+                                    it.items.forEach { playlistTrack ->
+                                        playlistTrack.track?.asTrack?.let {
+                                            val track = getTrack(it)
+                                            uiState.playlistSongs.add(track)
+                                            getYTSong(track)
+                                        }
+                                    }
+                                }
+                            }
+
                         }
                     }
                     uiState.playlist?.let { playlistRepository.addPlaylistWithTracks(it,uiState.playlistSongs) }
