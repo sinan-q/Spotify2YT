@@ -43,16 +43,23 @@ class HomeViewModel @Inject constructor(
         if (isLogged) {
             viewModelScope.launch {
                 if (spotifyAppApi==null) {
-                    val spotifyCred = SpotifyCredentials().apply {
-                        clientId = sharedPref.spotifyClientId
-                        clientSecret = sharedPref.spotifyClientSecret
-                    }
-                    spotifyAppApi = SpotifyAppApiBuilder(spotifyCred).build()
+                    try {
+                        val spotifyCred = SpotifyCredentials().apply {
+                            clientId = sharedPref.spotifyClientId
+                            clientSecret = sharedPref.spotifyClientSecret
+                        }
+                        spotifyAppApi = SpotifyAppApiBuilder(spotifyCred).build()
 
-                    uiState = uiState.copy(
-                        ytmApi = YTMusic(File(storage, "auth").path),
-                        playlists = playlistRepository.getAllPlaylists().toMutableStateList()
-                    )
+                        uiState = uiState.copy(
+                            ytmApi = YTMusic(File(storage, "auth").path),
+                            playlists = playlistRepository.getAllPlaylists().toMutableStateList()
+                        )
+                    }catch (e:Exception) {
+                        uiState = uiState.copy(
+                            error = e.message
+                        )
+                    }
+
 
                 }
             }

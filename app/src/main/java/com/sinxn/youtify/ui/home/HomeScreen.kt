@@ -24,6 +24,8 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,8 +57,13 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState = viewModel.uiState
+    val snackBarHostState = SnackbarHostState()
+
     var playlistDialogState by remember { mutableStateOf(false) }
-    Scaffold(floatingActionButton = {
+    Scaffold(snackbarHost =  { SnackbarHost(
+        hostState = snackBarHostState
+    ) },
+        floatingActionButton = {
         FloatingActionButton(modifier = Modifier.padding(20.dp), onClick = { playlistDialogState = true}) {
             Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (uiState.playlists.isEmpty()) Text(text = stringResource(R.string.add_playlist))
@@ -95,6 +102,12 @@ fun HomeScreen(
     LaunchedEffect(true) {
         viewModel.init()
         if (!viewModel.isLogged) navController.navigate(Routes.SETUP_SCREEN)
+    }
+    LaunchedEffect(uiState.error) {
+        if (uiState.error!=null) {
+            snackBarHostState.showSnackbar(uiState.error)
+            viewModel.onEvent(PlaylistEvent.ErrorDisplayed(null))
+        }
     }
 }
 

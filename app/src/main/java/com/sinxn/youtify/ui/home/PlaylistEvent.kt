@@ -15,7 +15,7 @@ sealed class PlaylistEvent {
     data class OnDelete(val play: Playlists): PlaylistEvent()
     data class Play(val play: Playlists): PlaylistEvent()
 
-    data class ErrorDisplayed(val error: String): PlaylistEvent()
+    data class ErrorDisplayed(val error: String?): PlaylistEvent()
 
 }
 sealed class SongEvent {
