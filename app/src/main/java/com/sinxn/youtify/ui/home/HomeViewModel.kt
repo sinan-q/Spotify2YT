@@ -135,8 +135,8 @@ class HomeViewModel @Inject constructor(
                             event.title, event.description, event.privacyStatus, videoIds, sourcePlaylist
                         )
                         uiState.playlist?.id?.let { playlistRepository.updateYoutubePlaylistId(it,ytPlaylistId) }
-                    }catch (_: Exception) {
-
+                    }catch (e: Exception) {
+                        uiState= uiState.copy(error = e.message)
                     }
 
                 }
