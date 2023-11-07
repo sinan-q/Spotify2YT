@@ -98,6 +98,10 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:1.0.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
+    //Glide
+    implementation("com.github.skydoves:landscapist-glide:2.2.3")
+
+
     //Spotify Library
     implementation("com.adamratzman:spotify-api-kotlin-core:4.0.2")
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,17 +36,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.sinxn.youtify.R
 import com.sinxn.youtify.domain.model.Playlists
 import com.sinxn.youtify.tools.Routes
 import com.sinxn.youtify.ui.home.components.AddPlaylistDialog
 import com.sinxn.youtify.ui.setup.MyButton
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -142,29 +148,67 @@ fun PlaylistCard(
                         }
                     }
                 }
-                Column(modifier = Modifier.padding(50.dp,20.dp)) {
-                    Text(
-                        text = formatDate(playlist.date),
-                        fontWeight = FontWeight.Light,
-                        fontSize = 14.sp,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = playlist.name, fontWeight = FontWeight.Bold, fontSize = 24.sp , maxLines = 1)
-                    Spacer(modifier = Modifier.height(10.dp))
-                    playlist.description?.let { Text(text = it, fontWeight = FontWeight.Light, fontSize = 14.sp, lineHeight = 15.sp, maxLines = 2) }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row {
+                Row(modifier = Modifier.padding(50.dp, 20.dp)) {
+                    Column(modifier = Modifier.weight(0.7f)) {
                         Text(
-                            text = "${playlist.count} Songs",
+                            text = formatDate(playlist.date),
                             fontWeight = FontWeight.Light,
                             fontSize = 14.sp,
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        playlist.followers?.let { Text(
-                            text = "$it Followers",
-                            fontWeight = FontWeight.Light,
-                            fontSize = 14.sp,
-                        ) }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = playlist.name,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            maxLines = 1
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        playlist.description?.let {
+                            Text(
+                                text = it,
+                                fontWeight = FontWeight.Light,
+                                fontSize = 14.sp,
+                                lineHeight = 15.sp,
+                                maxLines = 2
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row {
+                            Text(
+                                text = "${playlist.count} Songs",
+                                fontWeight = FontWeight.Light,
+                                fontSize = 14.sp,
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            playlist.followers?.let {
+                                Text(
+                                    text = "$it Followers",
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = 14.sp,
+                                )
+                            }
+                        }
+                    }
+                    Column( verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
+                        GlideImage(
+                            modifier = Modifier
+                                .clickable { onClick() }
+                                .size(100.dp,100.dp),
+                            imageModel = { playlist.image_url },
+                            imageOptions = ImageOptions(
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center
+
+                            ),
+                            requestOptions = {
+                                RequestOptions()
+                                    .placeholder(R.drawable.ic_app_name_colored)
+                                    .override(256, 256)
+                                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                                    .centerCrop()
+
+                            }
+                        )
                     }
                 }
             }
