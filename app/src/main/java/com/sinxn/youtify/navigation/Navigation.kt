@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sinxn.youtify.tools.Routes
+import com.sinxn.youtify.ui.about.AboutScreen
 import com.sinxn.youtify.ui.home.HomeScreen
 import com.sinxn.youtify.ui.home.HomeViewModel
 import com.sinxn.youtify.ui.home.PlayListScreen
@@ -27,6 +28,9 @@ fun Navigation(
         }
         composable(Routes.PLAYLIST_SCREEN) {
             PlayListScreen(navController = navController, viewModel =  homeViewModel)
+        }
+        composable(Routes.ABOUT_SCREEN) {
+            AboutScreen()
         }
 
         composable(Routes.PLAYLIST_SCREEN+"/?url={url}", arguments = listOf(navArgument("url") {

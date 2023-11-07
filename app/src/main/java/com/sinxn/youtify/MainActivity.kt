@@ -62,9 +62,9 @@ class MainActivity : ComponentActivity() {
                                     expanded = mDisplayMenu,
                                     onDismissRequest = { mDisplayMenu = false }) {
                                     DropdownMenuItem(
-                                        text = { Text(text = "Downloads") },
+                                        text = { Text(text = "About") },
                                         onClick = {
-                                            navController.navigate("downloads")
+                                            navController.navigate(Routes.ABOUT_SCREEN)
                                         })
                                 }
 
