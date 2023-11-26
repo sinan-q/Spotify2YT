@@ -1,0 +1,2 @@
+Convert your Spotify playlists into YouTube Music playlists and seamlessly enjoy your music on both platforms. 
+This Android app, built using Kotlin and Jetpack Compose, offers a range of features to enhance your music streaming experience.
